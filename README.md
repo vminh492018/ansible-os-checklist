@@ -39,3 +39,15 @@ ansible-server-testlab ansible_host=minhvx ansible_user=minhvx ansible_become=ye
     - check_var_partition_conf
  .....
 ```
+
+# Run command
+```
+*** Nếu chạy với user root sử dung command sau:
+ansible-playbook -i inventory/hosts.ini playbooks/check_OS.yml
+*** Nếu chạy với user có quyền sudo sử dung command sau:
+ansible-playbook -i inventory/hosts.ini playbooks/check_OS.yml --ask-become-pass
+-	Sau đó thực hiện nhập pass remote của user  
+-	hoặc có thể cấu hình pass bên trong inventory (khômg khuyến khích cách này)
+-	hoặc có thể sử dung ansible vault để mã hóa pass vào 1 file và cấu hình var trong inventory và playbook
+
+```
