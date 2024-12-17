@@ -1,0 +1,19 @@
+---
+- name: Check if SHA512 or yescrypt is configured for password hashing in PAM configuration files
+  shell: |
+    sha512_hashing=$(grep -i "sha512" /etc/pam.d/* | grep -v '^#')
+    yescrypt_hashing=$(grep -i "yescrypt" /etc/pam.d/* | grep -v '^#')
+    
+    if [[ -n "$sha512_hashing" ]]; then
+      echo "SHA512 password hashing is configured ==> OK"
+    elif [[ -n "$yescrypt_hashing" ]]; then
+      echo "Yescrypt password hashing is configured ==> OK"
+    else
+      echo "SHA512 or Yescrypt password hashing is not configured ==> WARNING"
+    fi
+  register: hashing_check_output
+  changed_when: false
+
+- name: Display password hashing check result
+  debug:
+    msg: "{{ hashing_check_output.stdout }}"

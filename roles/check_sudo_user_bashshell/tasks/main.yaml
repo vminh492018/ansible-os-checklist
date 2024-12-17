@@ -1,0 +1,42 @@
+---
+- name: Get list of users with /bin/bash shell and UID >= 400
+  shell: |
+    awk -F: '($7 == "/bin/bash" && $3 >= 400) {print $1}' /etc/passwd
+  register: user_list
+  changed_when: false
+
+- name: Check if user has standard sudo privileges
+  shell: |
+    grep -v '^#' /etc/sudoers | grep -w "{{ item }}" | grep "ALL=(ALL) ALL"
+  register: check_user_sudo
+  failed_when: false
+  changed_when: false
+  with_items: "{{ user_list.stdout_lines }}"
+
+- name: Check if user has NOPASSWD sudo privileges
+  shell: |
+    grep -v '^#' /etc/sudoers | grep -w "{{ item }}" | grep "ALL=(ALL) NOPASSWD: ALL"
+  register: check_user_nopass_sudo
+  failed_when: false
+  changed_when: false
+  with_items: "{{ user_list.stdout_lines }}"
+
+- name: Display results
+  debug:
+    msg: >-
+      User {{ user_list.stdout_lines[item_index] }}:
+      {% if check_user_sudo.results[item_index].stdout == '' %}
+      Standard sudo not found -> OK
+      {% else %}
+      Standard sudo found -> WARNING
+      {% endif %}
+      {% if check_user_nopass_sudo.results[item_index].stdout == '' %}
+      NOPASSWD sudo not found -> OK
+      {% else %}
+      NOPASSWD sudo found -> WARNING
+      {% endif %}
+  loop: "{{ range(0, user_list.stdout_lines | length) | list }}"
+  loop_control:
+    label: "{{ user_list.stdout_lines[item_index] }}"
+  vars:
+    item_index: "{{ item }}"

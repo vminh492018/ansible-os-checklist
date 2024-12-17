@@ -1,0 +1,15 @@
+---
+- name: Check if SSH Protocol 2 is configured
+  ansible.builtin.shell: "grep -v ^# /etc/ssh/sshd_config | grep -w 'Protocol 2'"
+  register: check_ssh_protocol
+  failed_when: false
+  changed_when: false
+
+- name: Display the result of SSH Protocol version check
+  ansible.builtin.debug:
+    msg: >-
+      {{
+        ('WARNING: Protocol 2 not configured'
+        if check_ssh_protocol.stdout == '' else
+        'OK: Protocol 2 configured: ' ~ check_ssh_protocol.stdout)
+      }}

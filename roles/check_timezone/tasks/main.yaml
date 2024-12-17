@@ -1,0 +1,22 @@
+---
+- name: Get timezone for different OS
+  shell: |
+    if command -v timedatectl &> /dev/null; then
+      timedatectl | grep -E '^ *Time zone:' | awk '{print $3}' || echo "?????"
+    else
+      echo "timedatectl command not found"
+    fi
+  register: current_timezone
+  changed_when: false
+
+- name: Check timezone offset
+  shell: date +%z
+  register: current_offset
+  changed_when: false
+
+- name: Validate timezone
+  debug:
+    msg:
+      - "Current Timezone: {{ current_timezone.stdout.split()[-1] if current_timezone.stdout else 'Unknown' }}"
+      - "Timezone Offset: {{ current_offset.stdout.strip() }}"
+      - "{% if current_offset.stdout.strip() == '+0700' %} Pass {% else %} Fail {% endif %}"

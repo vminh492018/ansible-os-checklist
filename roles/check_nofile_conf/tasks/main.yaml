@@ -1,0 +1,23 @@
+---
+- name: Get list of users in the system
+  shell: |
+    awk -F: '($7 == "/bin/bash" && $3 >= 400) {print $1}' /etc/passwd
+  register: user_list
+  failed_when: false
+
+- name: Check if user has configured nofile in limits.conf
+  shell: |
+    grep -v ^# /etc/security/limits.conf | grep -w $user | grep -w nofile
+  register: nofile_check
+  failed_when: false
+  loop: "{{ user_list.stdout_lines }}"
+
+- name: Show check status
+  debug:
+    msg: >-
+      {% if nofile_check is defined and nofile_check.stdout_lines is defined and nofile_check.stdout_lines|length > 0 %}
+      User {{ item }}: Has configured 'nofile' ==> OK
+      {% else %}
+      User {{ item }}: Has not configured 'nofile' ==> NOK
+      {% endif %}
+  loop: "{{ user_list.stdout_lines}}"

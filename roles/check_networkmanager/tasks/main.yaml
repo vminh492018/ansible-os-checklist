@@ -1,0 +1,16 @@
+---
+- name: Check NetworkManager service status
+  become: true
+  shell: |
+    check_network_manager=$(systemctl is-active NetworkManager)
+    if [[ $check_network_manager == "active" ]]; then
+        echo "NetworkManager service is active ==> WARNING"
+    else
+        echo "NetworkManager service not active ==> OK"
+    fi
+  register: network_manager_check
+  ignore_errors: yes
+
+- name: Show NetworkManager service check result
+  debug:
+    var: network_manager_check.stdout

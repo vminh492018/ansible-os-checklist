@@ -1,0 +1,16 @@
+---
+- name: Check for application partition in /etc/fstab
+  shell: |
+    grep -Ewv '#|/|/var|/dev/shm|/home|/usr|/proc|/sys|/dev/pts|/opt|swap|/boot|/boot/efi' /etc/fstab || true
+  register: check_app
+  changed_when: false
+
+- name: Warn if application partition is not found
+  debug:
+    msg: "Application partition (/u01...) not found in /etc/fstab ==> WARNING!"
+  when: check_app.stdout.strip() == ""
+
+- name: Confirm application partition is separate in /etc/fstab
+  debug:
+    msg: "Application partition (/u01...) is separate from root (/) ==> OK"
+  when: check_app.stdout.strip() != ""

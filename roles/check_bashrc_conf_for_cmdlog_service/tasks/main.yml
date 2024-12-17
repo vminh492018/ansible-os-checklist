@@ -1,0 +1,18 @@
+- name: Check bashrc configuration for cmdlog
+  shell: |
+    bashrc_check=$(grep -v ^# /etc/bashrc | grep "export PROMPT_COMMAND" | grep "local6.debug" | wc -l)
+    if [[ $bashrc_check == 0 ]]; then
+      echo "/etc/bashrc not configured for cmd logging ==> WARNING"
+    elif [[ $bashrc_check == 1 ]]; then
+      echo "/etc/bashrc configured for cmd logging ==> OK"
+    else
+      echo "/etc/bashrc has duplicate cmd logging configuration ==> WARNING"
+    fi
+  register: bashrc_check_output
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Display bashrc configuration status for cmdlog
+  debug:
+    msg: "{{ bashrc_check_output.stdout_lines }}"

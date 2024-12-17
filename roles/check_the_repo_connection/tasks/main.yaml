@@ -1,0 +1,16 @@
+- name: Check repo connection
+  shell: |
+    repo_check=$(curl --connect-timeout 3 -s -o /dev/null -I -w "%{http_code}" 10.60.129.132)
+    if [[ $repo_check != 200 ]]; then
+      echo "Repo connect NOK ==> WARNING"
+    else
+      echo "Repo connect ==> OK"
+    fi
+  register: repo_check_output
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Display repo connection status
+  debug:
+    msg: "{{ repo_check_output.stdout_lines }}"

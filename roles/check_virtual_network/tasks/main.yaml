@@ -1,0 +1,17 @@
+---
+- name: Check virtual network interfaces
+  become: true
+  shell: |
+    # Check if any virtual network interfaces (virbr or bridge) exist
+    check_virbr=$(ip link show | grep -E 'virbr|bridge')
+    if [[ -n "$check_virbr" ]]; then
+        echo "Virtual network interface(s) found ==> WARNING"
+    else
+        echo "No virtual network interface found ==> OK"
+    fi
+  register: virtual_network_check
+  ignore_errors: yes
+
+- name: Show virtual network interfaces check result
+  debug:
+    var: virtual_network_check.stdout

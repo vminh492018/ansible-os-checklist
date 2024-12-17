@@ -1,0 +1,18 @@
+- name: Check for required packages
+  shell: |
+    required_packages=("telnet" "sysstat" "lsof" "dmidecode" "net-tools" "pciutils" "iptables-services" "ntp" "ftp" "nmap" "iotop" "wget" "zip" "unzip" "sysfsutils" "traceroute" "e2fsprogs")
+    for package in "${required_packages[@]}"; do
+      if rpm -qa | grep -q "^$package-"; then
+        echo "$package ==> OK"
+      else
+        echo "$package ==> WARNING"
+      fi
+    done
+  register: package_check_output
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Display required packages status
+  debug:
+    msg: "{{ package_check_output.stdout_lines }}"

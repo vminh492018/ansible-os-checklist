@@ -1,0 +1,16 @@
+---
+- name: Check for unowned files
+  shell: |
+    find / -xdev \( -nouser -o -nogroup \) -print
+  register: unowned_files
+  changed_when: false
+
+- name: Display unowned files if found
+  debug:
+    msg: "{{ unowned_files.stdout }}"
+  when: unowned_files.stdout != ""
+
+- name: Report if no unowned files are found
+  debug:
+    msg: "No unowned files found ==> OK"
+  when: unowned_files.stdout == ""

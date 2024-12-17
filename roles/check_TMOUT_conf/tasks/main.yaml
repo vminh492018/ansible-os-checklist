@@ -1,0 +1,44 @@
+---
+- name: Check if TMOUT is configured with the correct value
+  shell: |
+    grep -v ^# /etc/profile | grep -w "TMOUT=300" -A 2 | grep -w "readonly TMOUT" -A 1 | grep -w "export TMOUT"
+  register: tmout_config
+  failed_when: false
+  changed_when: false
+  ignore_errors: yes
+
+# - name: Report if TMOUT is not configured correctly
+#   debug:
+#     msg: "TMOUT is not configured with the correct value."
+#   when: tmout_config.stdout == ""
+
+- name: Verify TMOUT is configured correctly
+  debug:
+    msg: "TMOUT is configured correctly ==> OK"
+  when: tmout_config.stdout != ""
+
+- name: Warning if TMOUT is not configured correctly
+  debug:
+    msg: "TMOUT is not configured correctly ==> WARNING"
+  when: tmout_config.stdout == ""
+
+- name: Check if /etc/profile has TMOUT=300 configuration
+  shell: |
+    grep -v ^# /etc/profile | grep "TMOUT=300" | wc -l
+  register: tmout_count
+  ignore_errors: yes
+
+- name: Verify if /etc/profile has TMOUT=300 configured
+  debug:
+    msg: "/etc/profile has TMOUT=300 configured ==> OK"
+  when: tmout_count.stdout == "1"
+
+- name: Warning if /etc/profile is missing TMOUT=300 configuration
+  debug:
+    msg: "/etc/profile is missing TMOUT=300 configuration ==> WARNING"
+  when: tmout_count.stdout == "0"
+
+- name: Warning if /etc/profile has duplicate TMOUT=300 configurations
+  debug:
+    msg: "/etc/profile has duplicate TMOUT=300 configurations ==> WARNING"
+  when: tmout_count.stdout > "1"

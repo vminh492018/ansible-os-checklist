@@ -1,0 +1,43 @@
+- name: Check if /etc/bashrc exists
+  stat:
+    path: /etc/bashrc
+  register: bashrc_file
+
+- name: Check cmdlog configuration in /etc/bashrc
+  shell: |
+    if grep -v ^# /etc/bashrc | grep "local6.debug" | grep ctty; then
+      echo "CMDLog configured to new standard ==> OK"
+    else
+      echo "CMDLog not configured to new standard ==> WARNING"
+    fi
+  register: cmdlog_check
+  when: bashrc_file.stat.exists
+  ignore_errors: yes
+
+- name: Display cmdlog configuration status
+  debug:
+    msg: >
+      {% if bashrc_file.stat.exists %}
+        {{ cmdlog_check.stdout }}
+      {% else %}
+        File /etc/bashrc does not exist ==> WARNING
+      {% endif %}
+
+- name: Check logrotate configuration for cmdlog
+  shell: |
+    entries=("/var/log/cmdlog.log" "{" "compress" "weekly" "rotate 12" "sharedscripts" "postrotate" "/bin/kill -HUP \`cat /var/run/syslogd.pid 2> /dev/null\` 2> /dev/null || true" "endscript" "}")
+    for entry in "${entries[@]}"; do
+        if grep -v ^# /etc/logrotate.d/cmdlog | grep -qw "$entry"; then
+            echo "$entry ==> OK"
+        else
+            echo "$entry ==> WARNING"
+        fi
+    done
+  register: logrotate_check
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Display logrotate configuration status for cmdlog
+  debug:
+    msg: "{{ logrotate_check.stdout_lines }}"

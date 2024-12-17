@@ -1,0 +1,34 @@
+---
+- name: Check network card speed
+  shell: |
+    #!/bin/bash
+    echo -e "\nChecking network card speed:"
+    check_interface_speed() {
+        local interface=$1
+        local speed
+
+        # Get network card speed
+        speed=$(ethtool "$interface" 2>/dev/null | grep "Speed:" | awk '{print $2}' | sed 's/[^0-9]*//g')
+
+        # Evaluate network card speed
+        if [[ -z "$speed" || "$speed" -lt 1000 ]]; then
+            echo -e "Network card $interface has Unknown speed or less than 1Gbps ==> WARNING" 
+        else
+            echo -e "Network card $interface has speed: $speed Mb/s ==> OK" 
+        fi
+    }
+
+    # Loop through all interfaces
+    for interface in $(ls /sys/class/net/); do
+        if [[ -f "/sys/class/net/$interface/operstate" && $(cat /sys/class/net/$interface/operstate) == "up" ]]; then
+            check_interface_speed "$interface"
+        fi
+    done
+  args:
+    executable: /bin/bash
+  register: network_speed_check
+  ignore_errors: yes
+
+- name: Display network card speed check result
+  debug:
+    var: network_speed_check.stdout_lines

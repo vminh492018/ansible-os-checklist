@@ -1,0 +1,25 @@
+- name: Check crontab configuration
+  command: crontab -l
+  register: crontab_output
+  failed_when: false  # Avoid playbook failure if crontab doesn't exist
+  ignore_errors: yes  # Ignore errors
+
+- name: Check if sd_agent cron job is missing
+  debug:
+    msg: "Cron job for sd_agent is missing ==> WARNING"
+  when: "'sd_agent_monitor.sh' not in crontab_output.stdout"
+
+- name: Check if scms_agent cron job is missing
+  debug:
+    msg: "Cron job for scms_agent is missing ==> WARNING"
+  when: "'scms-mon' not in crontab_output.stdout"
+
+- name: Check for unwanted cron jobs
+  debug:
+    msg: "Other cron jobs found, only sd_agent and scms_agent allowed ==> WARNING"
+  when: "'sd_agent_monitor.sh' in crontab_output.stdout and 'scms-mon' in crontab_output.stdout and crontab_output.stdout | regex_search('^(?!sd_agent|scms-agent)')"
+
+- name: Check if crontab configuration is correct
+  debug:
+    msg: "Cron configuration is correct, only sd_agent and scms_agent found ==> OK"
+  when: "'sd_agent_monitor.sh' in crontab_output.stdout and 'scms-mon' in crontab_output.stdout and crontab_output.stdout | regex_search('^(?!sd_agent|scms-agent)') == false"

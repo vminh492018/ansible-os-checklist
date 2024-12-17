@@ -1,0 +1,26 @@
+- name: Check LLDP configuration of the server
+  shell: |
+    if [ -f /sys/class/dmi/id/sys_vendor ] && grep -qi "VMware" /sys/class/dmi/id/sys_vendor; then
+      echo "VMware server does not need LLDP installation ==> OK"
+    else
+      lldp_package_check=$(rpm -qa | grep ^lldpd-)
+      if [[ -n $lldp_package_check ]]; then
+        echo "Physical server has LLDP package installed ==> OK"
+        lldp_neighbors_check=$(lldpcli show neighbors | grep "LLDP neighbors:")
+        if [[ -n $lldp_neighbors_check ]]; then
+          echo "LLDP show neighbors ==> OK"
+        else
+          echo "LLDP show neighbors ==> WARNING"
+        fi
+      else
+        echo "Physical server does not have LLDP package installed ==> WARNING"
+      fi
+    fi
+  register: lldp_check_output
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Display LLDP configuration status
+  debug:
+    msg: "{{ lldp_check_output.stdout_lines }}"

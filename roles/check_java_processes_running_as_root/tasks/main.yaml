@@ -1,0 +1,23 @@
+---
+- name: Get all processes for root user
+  ansible.builtin.command:
+    cmd: "pgrep -u root -a"
+  register: root_processes
+  failed_when: false
+
+- name: Filter for Java-related processes
+  ansible.builtin.set_fact:
+    java_processes: >-
+      {{
+        root_processes.stdout_lines | select("match", ".*(java|tomcat|jre|jdk|kubelet).*") | list
+      }}
+
+- name: Display the result of Java-related process check
+  ansible.builtin.debug:
+    msg: >-
+      {% if java_processes | length == 0 %}
+      No Java-related processes (java, tomcat, jre, jdk, kubelet) are running as root ==> OK
+      {% else %}
+      WARNING: Java-related processes are running as root!
+      {{ java_processes | join('\n') }}
+      {% endif %}

@@ -1,0 +1,73 @@
+---
+- name: Check logrotate configuration for syslog
+  ansible.builtin.shell: |
+    #!/bin/bash
+    entries=(
+      "weekly"
+      "rotate 12"
+      "create"
+      "dateext"
+      "include /etc/logrotate.d"
+    )
+
+    block_checks=(
+      "/var/log/wtmp {"
+      "create 0664 root utmp"
+      "}"
+      "/var/log/btmp {"
+      "create 0600 root utmp"
+      "}"
+    )
+
+    # Initialize the results
+    block=""
+    # Check general entries
+    for entry in "${entries[@]}"; do
+        if grep -v ^# /etc/logrotate.conf | grep -qw "$entry"; then
+            block="$block$entry ==> OK\n"
+        else
+            block="$block$entry ==> WARNING\n"
+        fi
+    done
+
+    # Check block-specific entries (wtmp, btmp)
+    wtmp_block_warning=false
+    btmp_block_warning=false
+
+    # Group related lines for wtmp and btmp
+    if ! grep -v ^# /etc/logrotate.conf | grep -qw "/var/log/wtmp {"; then
+        wtmp_block_warning=true
+    fi
+    if ! grep -v ^# /etc/logrotate.conf | grep -qw "create 0664 root utmp"; then
+        wtmp_block_warning=true
+    fi
+    if ! grep -v ^# /etc/logrotate.conf | grep -qw "}"; then
+        wtmp_block_warning=true
+    fi
+
+    if ! grep -v ^# /etc/logrotate.conf | grep -qw "/var/log/btmp {"; then
+        btmp_block_warning=true
+    fi
+    if ! grep -v ^# /etc/logrotate.conf | grep -qw "create 0600 root utmp"; then
+        btmp_block_warning=true
+    fi
+    if ! grep -v ^# /etc/logrotate.conf | grep -qw "}"; then
+        btmp_block_warning=true
+    fi
+
+    # Add warning for wtmp and btmp blocks if necessary
+    if $wtmp_block_warning; then
+        block="$block/var/log/wtmp {\ncreate 0664 root utmp ==> WARNING\n}"
+    fi
+    if $btmp_block_warning; then
+        block="$block/var/log/btmp {\ncreate 0600 root utmp ==> WARNING\n}"
+    fi
+
+    echo -e "$block"
+  register: logrotate_check
+  args:
+    executable: /bin/bash
+
+- name: Display logrotate configuration check results
+  ansible.builtin.debug:
+    var: logrotate_check.stdout_lines

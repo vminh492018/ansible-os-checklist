@@ -1,0 +1,19 @@
+---
+- name: Check rsyslog.conf for kern.debug logging
+  shell: |
+    rsyslog_kern_debug_check=$(grep -v ^# /etc/rsyslog.conf | grep "kern.debug" | grep "/var/log/iptables/iptables.log" | wc -l)
+    if [[ $rsyslog_kern_debug_check == 0 ]]; then
+      echo "rsyslog.conf not configured for kern.debug logging ==> WARNING"
+    elif [[ $rsyslog_kern_debug_check == 1 ]]; then
+      echo "rsyslog.conf configured for kern.debug logging ==> OK"
+    else
+      echo "rsyslog.conf has duplicate kern.debug logging configuration ==> WARNING"
+    fi
+  register: rsyslog_kern_debug_output
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Display rsyslog configuration status for kern.debug
+  debug:
+    msg: "{{ rsyslog_kern_debug_output.stdout_lines }}"

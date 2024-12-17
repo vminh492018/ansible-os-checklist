@@ -1,0 +1,36 @@
+---
+- name: Check nf_conntrack_max configuration
+  ansible.builtin.shell: |
+    if [[ -f /proc/sys/net/nf_conntrack_max ]]; then
+        nf_conntrack_max=$(cat /proc/sys/net/nf_conntrack_max)
+        if [[ $nf_conntrack_max -lt 524288 ]]; then
+            echo "/proc/sys/net/nf_conntrack_max = $nf_conntrack_max < 524288 ==> WARNING"
+        else
+            echo "/proc/sys/net/nf_conntrack_max = $nf_conntrack_max >= 524288 ==> OK"
+        fi
+    else
+        echo "/proc/sys/net/nf_conntrack_max not found ==> WARNING"
+    fi
+  register: nf_conntrack_max_check
+
+- name: Show nf_conntrack_max check result
+  ansible.builtin.debug:
+    var: nf_conntrack_max_check.stdout
+
+- name: Check nf_conntrack_ipv4 hashsize configuration
+  ansible.builtin.shell: |
+    if [[ -f /sys/module/nf_conntrack_ipv4/parameters/hashsize ]]; then
+        nf_conntrack_hashsize=$(cat /sys/module/nf_conntrack_ipv4/parameters/hashsize)
+        if [[ $nf_conntrack_hashsize -lt 131072 ]]; then
+            echo "/sys/module/nf_conntrack_ipv4/parameters/hashsize = $nf_conntrack_hashsize < 131072 ==> WARNING"
+        else
+            echo "/sys/module/nf_conntrack_ipv4/parameters/hashsize = $nf_conntrack_hashsize >= 131072 ==> OK"
+        fi
+    else
+        echo "/sys/module/nf_conntrack_ipv4/parameters/hashsize not found ==> WARNING"
+    fi
+  register: nf_conntrack_hashsize_check
+
+- name: Show nf_conntrack_ipv4 hashsize check result
+  ansible.builtin.debug:
+    var: nf_conntrack_hashsize_check.stdout

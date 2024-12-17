@@ -1,0 +1,30 @@
+---
+- name: Get system information
+  ansible.builtin.setup:
+    gather_subset:
+      - network
+      - hardware
+      - virtual
+
+- name: Check OS version and kernel
+  block:
+    - name: Print IP, OS version, and kernel
+      debug:
+        msg:
+          - "IP Address: {{ ansible_default_ipv4.address }}"
+          - "OS Version: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Kernel Version: {{ ansible_kernel }}"
+
+    - name: Check CentOS version
+      fail:
+        msg: 
+          - "CentOS version < 7.9. Failed."
+          - "OS Version: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      when: ansible_distribution == "CentOS" and ansible_distribution_version is version("7.9", "<")
+
+    - name: OS version check passed
+      debug:
+        msg: 
+          - "CentOS version >= 7.9. Passed."
+          - "OS Version: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      when: ansible_distribution == "CentOS" and ansible_distribution_version is version("7.9", ">=")

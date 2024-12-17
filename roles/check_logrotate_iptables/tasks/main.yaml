@@ -1,0 +1,20 @@
+---
+- name: Check logrotate configuration for iptables
+  shell: |
+    #!/bin/bash
+    entries=("/var/log/iptables/iptables.log" "{" "daily" "rotate 30" "copytruncate" "compress" "notifempty" "missingok" "}")
+    for entry in "${entries[@]}"; do
+        if grep -v ^# /etc/logrotate.d/iptables | grep -qw "$entry"; then
+            echo "$entry ==> OK"
+        else
+            echo "$entry ==> WARNING"
+        fi
+    done
+  register: logrotate_check
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Display logrotate configuration status
+  debug:
+    msg: "{{ logrotate_check.stdout_lines }}"

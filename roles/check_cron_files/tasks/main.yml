@@ -1,0 +1,29 @@
+- name: Check if cron.deny file is removed
+  stat:
+    path: /etc/cron.deny
+  register: cron_deny_stat
+
+- name: Report on cron.deny status
+  debug:
+    msg: "cron.deny file is removed ==> OK"
+  when: not cron_deny_stat.stat.exists
+
+- name: Report on cron.deny status if file exists
+  debug:
+    msg: "cron.deny file exists ==> WARNING"
+  when: cron_deny_stat.stat.exists
+
+- name: Check if cron.allow file is created
+  stat:
+    path: /etc/cron.allow
+  register: cron_allow_stat
+
+- name: Report on cron.allow status
+  debug:
+    msg: "cron.allow file is created ==> OK"
+  when: cron_allow_stat.stat.exists
+
+- name: Report on cron.allow status if file is missing
+  debug:
+    msg: "cron.allow file is missing ==> WARNING"
+  when: not cron_allow_stat.stat.exists

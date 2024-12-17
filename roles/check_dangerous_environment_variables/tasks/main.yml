@@ -1,0 +1,15 @@
+- name: Check dangerous environment variables in $PATH
+  shell: echo $PATH | grep -E "\./|::|/tmp"
+  register: path_check
+  changed_when: false
+  failed_when: false
+
+- name: Verify if $PATH contains dangerous paths
+  debug:
+    msg: "WARNING: Dangerous path detected in $PATH: {{ path_check.stdout }}"
+  when: path_check.stdout != ""
+
+- name: Confirm no dangerous paths in $PATH
+  debug:
+    msg: "OK: No dangerous paths in $PATH"
+  when: path_check.stdout == ""

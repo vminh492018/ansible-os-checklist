@@ -1,0 +1,14 @@
+---
+- name: Get zone_reclaim_mode value
+  command: cat /proc/sys/vm/zone_reclaim_mode
+  register: zone_reclaim_mode_result
+
+- name: Display zone_reclaim_mode status
+  debug:
+    msg: "zone_reclaim_mode={{ zone_reclaim_mode_result.stdout }} ==> OK"
+  when: zone_reclaim_mode_result.stdout == "0"
+
+- name: Warn if zone_reclaim_mode is not 0
+  debug:
+    msg: "zone_reclaim_mode={{ zone_reclaim_mode_result.stdout }} ==> WARNING"
+  when: zone_reclaim_mode_result.stdout != "0"

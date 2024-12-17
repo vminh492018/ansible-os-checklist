@@ -1,0 +1,30 @@
+---
+- name: Check password complexity
+  shell: |
+    grep -v ^# /etc/pam.d/system-auth | grep -w password | grep -w "retry=3" | grep -w "minlen=8" | grep -w "dcredit=-1" | grep -w "ucredit=-1" | grep -w "ocredit=-1" | grep -w "lcredit=-1"
+  register: password_complexity
+  failed_when: false
+
+- name: Display password complexity check results
+  debug:
+    msg: >-
+      {% if password_complexity.stdout == "" %}
+      Password complexity not configured (retry=3, minlen=8, dcredit=-1, ucredit=-1, ocredit=-1, lcredit=-1) ==> WARNING
+      {% else %}
+      Password complexity configured: {{ password_complexity.stdout }} ==> OK
+      {% endif %}
+
+- name: Check password hashing
+  shell: |
+    grep -v ^# /etc/pam.d/system-auth | grep -w password | grep -w sha512 | grep -w "remember=5"
+  register: password_hashing
+  failed_when: false
+
+- name: Display password hashing check results
+  debug:
+    msg: >-
+      {% if password_hashing.stdout == "" %}
+      Password hashing not configured (sha512, remember=5) ==> WARNING
+      {% else %}
+      Password hashing configured: {{ password_hashing.stdout }} ==> OK
+      {% endif %}

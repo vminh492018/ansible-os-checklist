@@ -1,0 +1,17 @@
+---
+- name: Check SSH PermitRootLogin configuration
+  ansible.builtin.shell: |
+    grep -v ^# /etc/ssh/sshd_config | grep -w "PermitRootLogin no"
+  register: permit_root_check
+  failed_when: false  # Prevent task failure if grep returns non-zero exit code
+  changed_when: false  # Prevent marking the task as changed
+
+- name: Validate SSH PermitRootLogin configuration
+  ansible.builtin.debug:
+    msg: >
+      {{ 
+        "WARNING: PermitRootLogin is not set to 'no'" 
+        if permit_root_check.stdout == "" 
+        else 
+        "OK: PermitRootLogin is correctly set to 'no'"
+      }}

@@ -1,0 +1,26 @@
+---
+- name: Get the list of application users
+  ansible.builtin.shell: |
+    awk -F: '($7 == "/bin/bash" && $3 >= 400) {print $1}' /etc/passwd
+  register: user_list_output
+  changed_when: false
+
+- name: Set user_list variable
+  ansible.builtin.set_fact:
+    user_list: "{{ user_list_output.stdout_lines }}"
+
+- name: Check if application users are in the 'wheel' group
+  ansible.builtin.shell: |
+    grep wheel /etc/group | grep -w {{ item }}
+  register: user_in_wheel_result
+  failed_when: false
+  loop: "{{ user_list }}"
+  when: item not in ['monitor', 'vt_admin']
+
+- name: Output results for users in 'wheel'
+  ansible.builtin.debug:
+    msg: >-
+      User {{ item.item }} is {{'NOT in the wheel group (OK)' if item.rc != 0 else 'in the wheel group (WARNING)' }}.
+  with_items: "{{ user_in_wheel_result.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item }}"

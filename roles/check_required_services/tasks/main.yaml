@@ -1,0 +1,73 @@
+---
+- name: Check kdump service status
+  ansible.builtin.command: systemctl is-active kdump
+  register: kdump_status
+  changed_when: false
+  failed_when: false
+
+- name: Print kdump service status
+  ansible.builtin.debug:
+    msg: >-
+      Kdump service is {{ 'active ==> OK' if kdump_status.stdout.strip() == 'active' else 'not active ==> WARNING' }}
+
+- name: Check sendmail service status
+  ansible.builtin.command: systemctl is-active sendmail
+  register: sendmail_status
+  changed_when: false
+  failed_when: false
+
+- name: Print sendmail service status
+  ansible.builtin.debug:
+    msg: >-
+      Sendmail service is {{ 'active ==> WARNING' if sendmail_status.stdout.strip() == 'active' else 'not active ==> OK' }}
+
+- name: Check postfix service status
+  ansible.builtin.command: systemctl is-active postfix
+  register: postfix_status
+  changed_when: false
+  failed_when: false
+
+- name: Print postfix service status
+  ansible.builtin.debug:
+    msg: >-
+      Postfix service is {{ 'active ==> WARNING' if postfix_status.stdout.strip() == 'active' else 'not active ==> OK' }}
+
+- name: Check bluetooth service status
+  ansible.builtin.command: systemctl is-active bluetooth
+  register: bluetooth_status
+  changed_when: false
+  failed_when: false
+
+- name: Print bluetooth service status
+  ansible.builtin.debug:
+    msg: >-
+      Bluetooth service is {{ 'active ==> WARNING' if bluetooth_status.stdout.strip() == 'active' else 'not active ==> OK' }}
+
+- name: Check CUPS service status
+  ansible.builtin.command: systemctl is-active cups
+  register: cups_status
+  changed_when: false
+  failed_when: false
+
+- name: Print CUPS service status
+  ansible.builtin.debug:
+    msg: >-
+      CUPS service is {{ 'active ==> WARNING' if cups_status.stdout.strip() == 'active' else 'not active ==> OK' }}
+
+- name: Check MySQL service status
+  ansible.builtin.shell: |
+    mysql_check=$(ps -ef | grep mysql | grep -v '^root')
+    if [ -z "$mysql_check" ]; then  
+      echo "MySQL not active ==> OK"
+      exit 0
+    else
+      echo -e "MySQL is active: $mysql_check ==> WARNING"
+      exit 1
+    fi
+  register: mysql_status
+  ignore_errors: true
+    
+- name: Display MySQL status
+  debug:
+    msg: "{{ mysql_status.stdout }}"
+    

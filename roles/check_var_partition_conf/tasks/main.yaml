@@ -1,0 +1,27 @@
+---
+- name: Check if server is VMware
+  command: cat /sys/class/dmi/id/sys_vendor
+  register: sys_vendor_result
+  ignore_errors: yes
+
+- name: Display VMware status
+  debug:
+    msg: >-
+      {% if 'vmware' in sys_vendor_result.stdout | lower | replace(',', '') %}VMware virtualized server does not need /var partition in /etc/fstab ==> OK{% else %}Server is not VMware{% endif %}
+
+
+- name: Check if /var is in /etc/fstab
+  command: grep -w /var /etc/fstab
+  register: var_partition_result
+  failed_when: false
+
+- name: Display /var partition status
+  debug:
+    msg: >-
+      {% if var_partition_result.rc != 0 %}/var partition not found in /etc/fstab ==> WARNING{% else %}/var partition is in /etc/fstab ==> OK{% endif %}
+
+
+- name: Verify /var is separate partition
+  debug:
+    msg: >-
+      {% if var_partition_result.rc == 0 %}/var partition is separate from root (/) ==> OK{% else %}Cannot check because /var is not configured in /etc/fstab{% endif %}

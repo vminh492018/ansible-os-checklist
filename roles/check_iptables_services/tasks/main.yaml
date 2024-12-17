@@ -1,0 +1,17 @@
+---
+- name: Check if iptables service is active
+  ansible.builtin.shell: systemctl is-active iptables
+  register: iptables_status
+  failed_when: false
+  ignore_errors: false
+
+- name: Display iptables status
+  ansible.builtin.debug:
+    msg: "iptables is active ==> OK"
+  when: iptables_status.stdout == "active"
+
+- name: Warn if iptables is inactive
+  ansible.builtin.debug:
+    msg: "iptables is inactive ==> WARNING"
+  when: iptables_status.stdout == "inactive"
+

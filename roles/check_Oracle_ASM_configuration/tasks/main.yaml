@@ -1,0 +1,21 @@
+- name: Check Oracle ASM configuration
+  shell: |
+    if [[ -e /etc/sysconfig/oracleasm ]]; then
+      oracleasm_scanorder=$(grep -v ^# /etc/sysconfig/oracleasm | grep ORACLEASM_SCANORDER | grep -i dm | wc -l)
+      oracleasm_scanexclude=$(grep -v ^# /etc/sysconfig/oracleasm | grep ORACLEASM_SCANEXCLUDE | grep -i sd | wc -l)
+      if [[ $oracleasm_scanorder > 0 && $oracleasm_scanexclude > 0 ]]; then
+        echo "ORACLEASM_SCANORDER: $oracleasm_scanorder\nORACLEASM_SCANEXCLUDE: $oracleasm_scanexclude\n==> OK"
+      else
+        echo "ORACLEASM_SCANORDER: $oracleasm_scanorder\nORACLEASM_SCANEXCLUDE: $oracleasm_scanexclude\n==> WARNING"
+      fi
+    else
+      echo "Server does not have /etc/sysconfig/oracleasm file ==> OK"
+    fi
+  register: oracle_asm_output
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Display Oracle ASM configuration status
+  debug:
+    msg: "{{ oracle_asm_output.stdout_lines }}"

@@ -1,0 +1,14 @@
+---
+- name: Read sudoers file and check if wheel group exists
+  shell: grep -v ^# /etc/sudoers | grep "%wheel[[:space:]]ALL=(ALL)[[:space:]]ALL"
+  register: check_wheel
+  failed_when: false
+
+- name: Show the result of wheel group configuration
+  debug:
+    msg: >-
+      {%- if check_wheel.rc == 0 -%}
+      WARNING: Found configuration for wheel group: {{ check_wheel.stdout }}
+      {%- else -%}
+      OK: Configuration for wheel group does not exist.
+      {%- endif -%}

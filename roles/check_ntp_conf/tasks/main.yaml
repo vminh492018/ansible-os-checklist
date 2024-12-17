@@ -1,0 +1,59 @@
+---
+- name: Check if NTP service is active
+  command: systemctl is-active ntpd
+  register: ntpd_status
+  failed_when: false
+  
+- name: Log NTP service status
+  debug:
+    msg: >-
+      Service NTP status: {{
+      'active ==> OK' if ntpd_status.stdout == 'active' else 'inactive ==> WARNING'
+      }}
+  
+- name: Check NTP configuration if service is active
+  when: ntpd_status.stdout == 'active'
+  block:
+    - name: Check NTP server configuration
+      command: grep -v ^# /etc/ntp.conf | grep -E "server|pool"
+      register: ntp_server_config
+      failed_when: false
+  
+    - name: Log NTP server configuration status
+      debug:
+        msg: >-
+          NTP server configuration: {{
+          'Configured ==> OK' if ntp_server_config.stdout else 'Not configured ==> WARNING'
+          }}
+  
+    - name: Check NTP logrotate configuration
+      command: grep logfile /etc/ntp.conf | awk '{print $2}'
+      register: ntp_logfile
+      failed_when: false
+  
+    - name: Validate NTP logrotate configuration
+      block:
+        - name: Check if NTP logrotate entry exists
+          command: grep "{{ ntp_logfile.stdout }}" /etc/logrotate.d/syslog
+          register: ntp_logrotate_entry
+          failed_when: false
+  
+        - name: Log NTP logrotate configuration status
+          debug:
+            msg: >-
+              NTP logrotate: {{
+              'Configured ==> OK' if ntp_logrotate_entry.stdout else 'Not configured ==> WARNING'
+              }}
+  
+      when: ntp_logfile.stdout | length > 0
+  
+    - name: Log invalid NTP logrotate configuration
+      debug:
+        msg: "NTP logrotate configuration is invalid"
+      when: ntp_logfile.stdout | length == 0
+  
+- name: Log NTP service inactive status
+  debug:
+    msg: "NTP service is not running ==> WARNING"
+  when: ntpd_status.stdout != 'active'
+  

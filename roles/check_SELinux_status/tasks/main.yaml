@@ -1,0 +1,37 @@
+---
+- name: Check and install SELinux utilities if not present
+  become: true
+  shell: |
+    if ! command -v sestatus &> /dev/null; then
+        if command -v yum &> /dev/null; then
+            yum install -y policycoreutils
+        elif command -v apt-get &> /dev/null; then
+            apt-get update && apt-get install -y selinux-utils
+        fi
+    fi
+  register: selinux_install_check
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Check SELinux status
+  become: true
+  shell: |
+    if command -v sestatus &> /dev/null; then
+        selinux_status=$(sestatus | grep "SELinux status" | awk '{print $3}')
+        if [[ $selinux_status == "disabled" ]]; then
+            echo "SELinux is disabled ==> OK"
+        else
+            echo "SELinux is $selinux_status ==> WARNING"
+        fi
+    else
+        echo "SELinux utilities are not installed ==> SKIPPED"
+    fi
+  register: selinux_check
+  ignore_errors: yes
+  args:
+    executable: /bin/bash
+
+- name: Show SELinux status check result
+  debug:
+    var: selinux_check.stdout

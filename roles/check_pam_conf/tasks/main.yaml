@@ -1,0 +1,16 @@
+---
+- name: Checking PAM configuration for root access
+  ansible.builtin.shell: |
+    grep -v ^# /etc/pam.d/su | grep -w auth | grep -w required | grep -w pam_wheel.so
+  register: pam_su_config
+  failed_when: false
+
+- name: Checking PAM status
+  ansible.builtin.debug:
+    msg: >
+      {% if pam_su_config.stdout == "" %}
+      [WARNING!] Not yet configured to allow only users in the wheel group.
+      {% else %}
+      [OK] Configuration has been set to restrict root access to wheel group members only
+      {{ pam_su_config.stdout}}
+      {% endif %}

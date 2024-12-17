@@ -1,0 +1,14 @@
+- name: Check users with bash shell in AllowUsers
+  ansible.builtin.shell: |
+    awk -F: '($7 == "/bin/bash" && $3 >= 400) {print $1}' /etc/passwd | while read user; do
+      if grep -v ^# /etc/ssh/sshd_config | grep -w AllowUsers | grep -qw $user; then
+        echo "$user OK"
+      else
+        echo "$user WARNING"
+      fi
+    done
+  register: check_users_result
+
+- name: Display results for users in AllowUsers
+  ansible.builtin.debug:
+    msg: "{{ check_users_result.stdout_lines }}"

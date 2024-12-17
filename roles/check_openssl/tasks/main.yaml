@@ -1,0 +1,22 @@
+---
+- name: Check if OpenSSL version is in whitelist
+  shell: |
+    openssl_whitelist="1.0.1e 1.0.2k 1.0.1u 1.0.2j 1.1.0a 1.1.0g 1.0.2n 1.1.1k"
+    openssl_variable="WARNING"
+    for version in $openssl_whitelist; do
+      openssl_check=$(openssl version -a | grep "$version")
+      if [ ! -z "$openssl_check" ]; then
+        echo "$openssl_check ==> OK"
+        openssl_variable="OK"
+        break
+      fi
+    done
+    if [ "$openssl_variable" = "WARNING" ]; then
+      echo "OpenSSL version is not in the whitelist ==> WARNING"
+    fi
+  register: openssl_check_result
+  changed_when: false
+
+- name: Display OpenSSL version check result
+  debug:
+    msg: "{{ openssl_check_result.stdout }}"
