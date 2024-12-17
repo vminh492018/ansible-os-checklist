@@ -1,5 +1,6 @@
-# 1) Getting start with my playbook
-#### Install a ansible server or images (using Docker):
+# Getting start with my playbook
+#### Install a ansible server:
+#### Monolithic Ansible server
 # Version information:
 ```
 - Ansible [core 2.15.13]
@@ -7,6 +8,11 @@
 - jinja version = 3.1.2
 - libyaml = True
 ```
+#### Docker images
+```
+docker pull vminh492018/ansible:ubuntu2204
+```
+
 # Ansible.cfg
 ```
 [defaults]
