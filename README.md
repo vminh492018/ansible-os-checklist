@@ -1,7 +1,7 @@
 # Getting start with my playbook
-#### Install a ansible server:
-#### Monolithic Ansible server
-# Version information:
+## Install a ansible server:
+# Monolithic Ansible server
+### Version information:
 ```
 - Ansible [core 2.15.13]
 - Python version = 3.9.20 (main, Sep  9 2024, 00:00:00) [GCC 11.5.0 20240719 (Red Hat 11.5.0-2)]
@@ -48,12 +48,14 @@ ansible-server-testlab ansible_host=minhvx ansible_user=minhvx ansible_become=ye
 
 # Run command
 ```
-*** Nếu chạy với user root sử dung command sau:
+*** If running as the root user, use the following command:
 ansible-playbook -i inventory/hosts.ini playbooks/check_OS.yml
-*** Nếu chạy với user có quyền sudo sử dung command sau:
+
+*** If running as a user with sudo privileges, use the following command:
 ansible-playbook -i inventory/hosts.ini playbooks/check_OS.yml --ask-become-pass
--	Sau đó thực hiện nhập pass remote của user  
--	hoặc có thể cấu hình pass bên trong inventory (khômg khuyến khích cách này)
--	hoặc có thể sử dung ansible vault để mã hóa pass vào 1 file và cấu hình var trong inventory và playbook
+
+Then enter the remote user's password
+Alternatively, you can configure the password inside the inventory (not recommended)
+Or you can use Ansible Vault to encrypt the password into a file and configure the variable in the inventory and playbook
 
 ```
