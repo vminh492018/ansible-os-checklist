@@ -10,7 +10,7 @@
 ```
 #### Docker images
 ```
-docker pull vminh492018/ansible:ubuntu2204
+docker pull vminh492018/ansible-ubuntu:22.04
 ```
 
 # Ansible.cfg
