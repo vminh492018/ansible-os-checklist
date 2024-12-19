@@ -4,7 +4,7 @@
 ### Version information:
 ```
 - Ansible [core 2.15.13]
-- Python version = 3.9.20 (main, Sep  9 2024, 00:00:00) [GCC 11.5.0 20240719 (Red Hat 11.5.0-2)]
+- Python version = 3.10.12 (main, Nov  6 2024, 20:22:13) [GCC 11.4.0] (/usr/bin/python3)
 - jinja version = 3.1.2
 - libyaml = True
 ```
