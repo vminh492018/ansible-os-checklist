@@ -38,5 +38,8 @@ RUN mkdir -p /home/devops/ansible-projects
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
+# Switch to the "devops" user 
+USER devops
+
 # Set the default command
 CMD ["/bin/bash"]
