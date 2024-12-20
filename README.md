@@ -61,8 +61,6 @@ This guide provides an example of the prerequisites for using the software and d
    sudo chown -R devops:devops /home/devops/.ssh
    ```
 
----
-
 #### Step 2: Create Working Directory `/home/devops/ansible-projects`
 * Create the directory:
    ```bash
@@ -74,7 +72,8 @@ This guide provides an example of the prerequisites for using the software and d
    sudo chmod 755 /home/devops/ansible-projects
    sudo chown -R devops:devops /home/devops/ansible-projects
    ```
-### Step 3: Check UID and GID of User *devops*
+   
+#### Step 3: Check UID and GID of User *devops*
 * Verify UID and GID:
    ```bash
    id devops
@@ -92,7 +91,6 @@ This guide provides an example of the prerequisites for using the software and d
    ```bash
    docker pull vminh492018/ansible-ubuntu:22.04
    ```
----
 
 #### Step 2: Run Container with Mounted Directory
 * Start a container with the working directory mounted and the correct UID/GID:
@@ -105,7 +103,6 @@ This guide provides an example of the prerequisites for using the software and d
   vminh492018/ansible-ubuntu:22.04
    ```
 * Replace `<UID>` and `<GID>` with the values from `id devops`.
----
 
 ### Step 3: Create SSH Key and Configure SSH
 #### Generate SSH Key Inside the Container
@@ -127,7 +124,6 @@ This guide provides an example of the prerequisites for using the software and d
    chmod 600 /home/devops/.ssh/id_rsa
    chmod 644 /home/devops/.ssh/id_rsa.pub
    ```
----
 
 #### Copy SSH Public Key to Remote Servers
 * Use `ssh-copy-id` to add the public key to remote servers:
@@ -152,14 +148,12 @@ This guide provides an example of the prerequisites for using the software and d
    - Replace `<remote_server_ip>` with the target server IP.
    - A successful `pong` response indicates the connection is working.
 
----
-
 ## Summary
 - **Local:** Set up the `devops` user with sudo and SSH access, and create a working directory.
 - **Docker:** Run the container with the correct UID/GID and mount the working directory.
 - **SSH Key:** Generate and configure SSH keys for connecting to remote servers.
 - **Ansible:** Test the setup by running an Ansible command to check connectivity.
-
+---
 ## Info my playbook
 ### Ansible.cfg
 ```
