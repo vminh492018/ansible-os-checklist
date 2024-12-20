@@ -22,4 +22,4 @@ sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_
 sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
 # Switch to the "devops" user and execute the given command
-exec gosu devops "$@"
+exec su - devops "$@"
