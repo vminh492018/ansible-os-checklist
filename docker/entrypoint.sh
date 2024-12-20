@@ -20,6 +20,3 @@ fi
 echo 'AllowUsers devops' >> /etc/ssh/sshd_config
 sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
 sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-
-# Switch to the "devops" user and execute the given command
-exec su - devops "$@"
