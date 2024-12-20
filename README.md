@@ -16,8 +16,8 @@ docker pull vminh492018/ansible-ubuntu:22.04
 # Ansible.cfg
 ```
 [defaults]
-inventory =  /home/minhvx/Ansible_projects/VHKT_VTT/inventory/hosts.ini
-roles_path = /home/minhvx/Ansible_projects/VHKT_VTT/roles
+inventory =  /home/devops/ansible-projects/ansible-baselineOS/inventory/hosts.ini
+roles_path = /home/devops/ansible-projects/ansible-baselineOS/roles
 ```
 # Inventory
 ```
