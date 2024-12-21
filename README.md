@@ -95,12 +95,10 @@ This guide provides an example of the prerequisites for using the software and d
 #### Step 2: Run Container with Mounted Directory
 * Start a container with the working directory mounted and the correct UID/GID:
    ```bash
-  docker run -d -it \
-  --name ansible_container \
-  -e LOCAL_UID=$(id -u devops) \
-  -e LOCAL_GID=$(id -g devops) \
-  --mount type=bind,source=/home/devops/ansible-projects,target=/home/devops/ansible-projects \
-  vminh492018/ansible-ubuntu:22.04
+  docker run -d -it --name ansible_container --user $(id -u devops):$(id -g devops) --mount type=bind,source=/home/devops/ansible-projects,target=/home/devops/ansible-projects vminh492018/ansible-ubuntu:22.04
+
+   OR: (Older docker version)
+   docker run -d -it --name ansible_container --user $(id -u devops):$(id -g devops) -v /home/devops/ansible-projects:/home/devops/ansible-projects vminh492018/ansible-ubuntu:22.04
    ```
 * Replace `<UID>` and `<GID>` with the values from `id devops`.
 
