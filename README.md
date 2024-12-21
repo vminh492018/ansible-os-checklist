@@ -170,7 +170,7 @@ ubuntu2204 ansible_host=192.168.153.44
 
 <!-- Use with user can sudo -->
 [VHKT_Test_lab]
-ansible-server-testlab ansible_host= [ip_host] ansible_user=minhvx ansible_become=yes ansible_become_method=sudo ansible_become_pass=...
+ansible-server-testlab ansible_host= [ip_host] ansible_user=minhvx ansible_become=yes ansible_become_method=sudo ansible_become_password=...
 ```
 
 ### Playbook
