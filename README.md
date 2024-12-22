@@ -83,7 +83,6 @@ This guide provides an example of the prerequisites for using the software and d
   uid=1001(devops) gid=1001(devops) groups=1001(devops),27(sudo)
   ```
 * Note down `uid` and `gid` values for later use.
----
 
 ### 2. Docker Setup
 #### Step 1: Pull Docker Image
@@ -136,7 +135,6 @@ This guide provides an example of the prerequisites for using the software and d
    ssh devops@<remote_server_ip>
    ```
 * If no password is required, the SSH key is configured correctly.
----
 
 ### 3. Test Ansible Setup
 * Verify Ansible can connect to the remote server:
@@ -187,15 +185,21 @@ ansible-server-testlab ansible_host= [ip_host] ansible_user=minhvx ansible_becom
 ```
 
 ### Run command
-```
-*** If running as the root user, use the following command:
-ansible-playbook -i inventory/hosts.ini playbooks/check_OS.yml
+* If running as the root user, use the following command:
+   ```bash
+   ansible-playbook -i inventory/hosts.ini playbooks/check_OS.yml
+   ```
 
-*** If running as a user with sudo privileges, use the following command:
-ansible-playbook -i inventory/hosts.ini playbooks/check_OS.yml --ask-become-pass
+* If running as a user with sudo privileges, use the following command:
+   ```bash
+   ansible-playbook -i inventory/hosts.ini playbooks/check_OS.yml --ask-become-pass=your-passwd
 
-Then enter the remote user's password
-Alternatively, you can configure the password inside the inventory (not recommended)
-Or you can use Ansible Vault to encrypt the password into a file and configure the variable in the inventory and playbook
+   Then enter the remote user's password
+   Alternatively, you can configure the password inside the inventory (not recommended)
+   Or you can use Ansible Vault to encrypt the password into a file and configure the variable in the inventory and playbook
+   ```
 
-```
+* Running Ansible in a container from a local server (using a Docker container as the environment to execute Ansible, instead of running Ansible directly on the host server)
+   ```bash
+   docker exec -it [container ID] /bin/bash -c "cd /PATH/TO/PROJECT && ansible-playbook -i inventory/hosts.ini playbooks/check_OS.yml"
+   ```
