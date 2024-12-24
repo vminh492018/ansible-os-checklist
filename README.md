@@ -19,10 +19,12 @@ This guide provides an example of the prerequisites for using the software and d
 #### Ubuntu
 * Create user *devops*:
    ```bash
-   sudo adduser devops
+   sudo groupadd -g 2222 devops && sudo useradd -u 2222 -g 2222 devops
    ```
-* Set a password when prompted.
-* Skip other optional information.
+* Set a password for *devops*:
+   ```bash
+   sudo passwd devops
+   ```
 * Add *devops* to the *sudo* group:
    ```bash
    sudo usermod -aG sudo devops
@@ -36,7 +38,7 @@ This guide provides an example of the prerequisites for using the software and d
 #### On CentOS 7/9
 * Create user *devops*:
    ```bash
-   sudo adduser devops
+   sudo groupadd -g 2222 devops && sudo useradd -u 2222 -g 2222 devops
    ```
 
 * Set a password for *devops*:
@@ -80,7 +82,7 @@ This guide provides an example of the prerequisites for using the software and d
    ```
 * Sample output:
   ```
-  uid=1001(devops) gid=1001(devops) groups=1001(devops),27(sudo)
+  uid=2222(devops) gid=2222(devops) groups=2222(devops),27(sudo)
   ```
 * Note down `uid` and `gid` values for later use.
 
@@ -99,7 +101,7 @@ This guide provides an example of the prerequisites for using the software and d
    OR: (Older docker version)
    docker run -d -it --name ansible_container --user $(id -u devops):$(id -g devops) -v /home/devops/ansible-projects:/home/devops/ansible-projects vminh492018/ansible-ubuntu:22.04
    ```
-* Replace `<UID>` and `<GID>` with the values from `id devops`.
+* NOTE: `<UID>` and `<GID>` with the values = 2222
 
 ### Step 3: Create SSH Key and Configure SSH
 #### Generate SSH Key Inside the Container
