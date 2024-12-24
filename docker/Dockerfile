@@ -28,24 +28,24 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Add environment variables for UID and GID with default values
-ARG LOCAL_UID=1001
-ARG LOCAL_GID=1001
+# Create a non-root user "devops" with fixed UID and GID
+RUN groupadd -g 2222 devops && \
+    useradd -u 2222 -g 2222 -m -s /bin/bash devops && \
+    echo 'devops ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
+    mkdir -p /home/devops/.ssh && \
+    mkdir -p /home/devops/ansible-projects && \
+    chown -R devops:devops /home/devops
 
-# Create a non-root user "devops" with specific UID and GID
-RUN groupadd -g ${LOCAL_GID} devops && \
-    useradd -u ${LOCAL_UID} -g ${LOCAL_GID} -m -s /bin/bash devops && \
-    echo 'devops ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+# Update SSH configuration
+RUN echo 'AllowUsers devops' >> /etc/ssh/sshd_config && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
-# Copy entrypoint script
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# Set the working directory and create the directory at the same time
+# Set the working directory
 WORKDIR /home/devops/ansible-projects
 
-# Set entrypoint
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Switch to the "devops" user 
+USER devops
 
 # Set the default command
 CMD ["/bin/bash"]
