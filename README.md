@@ -14,6 +14,14 @@ This guide provides an example of the prerequisites for using the software and d
   ```
   - docker pull vminh492018/ansible-ubuntu:22.04
   ```
+* Docker version (Centos7 - EOL)
+  ```
+  - docker-ce-rootless-extras-26.1.4-1.el7.x86_64.rpm
+  - docker-ce-cli-20.10.11-3.el7.x86_64.rpm
+  - docker-ce-20.10.11-3.el7.x86_64.rpm
+  - docker-scan-plugin-0.23.0-3.el7.x86_64.rpmdocker-scan-plugin-0.23.0-3.el7.x86_64.rpm
+  - containerd.io-1.6.33-3.1.el7.x86_64.rpm
+  ```
 ### 1. Local Setup
 #### Step 1: Create User `devops` with Sudo and SSH Access
 #### Ubuntu
