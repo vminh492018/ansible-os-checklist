@@ -20,7 +20,7 @@
 - name: Output results for users in 'wheel'
   ansible.builtin.debug:
     msg: >-
-      User {{ item.item }} is {{'NOT in the wheel group (OK)' if item.rc != 0 else 'in the wheel group (WARNING)' }}.
+      User {{ item.item }} is {{ 'NOT in the wheel group (OK)' if item.rc is defined and item.rc != 0 else 'in the wheel group (WARNING)' }}.
   with_items: "{{ user_in_wheel_result.results | default([]) }}"
   loop_control:
     label: "{{ item.item }}"
