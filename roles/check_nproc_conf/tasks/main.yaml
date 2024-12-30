@@ -8,10 +8,8 @@
 - name: Check nproc configuration for each user
   debug:
     msg: >-
-      {% for user in user_list.stdout_lines %}
-      {% set nproc_check = lookup('file', '/etc/security/limits.conf') | regex_search('^' ~ user ~ '.*nproc') %}
-      {% if nproc_check %}User {{ user }}: {{ nproc_check }} ==> OK
-      {% else %}User {{ user }}: nproc not configured ==> WARNING
+      {% set nproc_check = lookup('file', '/etc/security/limits.conf') | regex_search('^' ~ item ~ '.*nproc') %}
+      {% if nproc_check %}User {{ item }}: {{ nproc_check }} ==> OK
+      {% else %}User {{ item }}: nproc not configured ==> WARNING
       {% endif %}
-      {% endfor %}
   loop: "{{ user_list.stdout_lines }}"
