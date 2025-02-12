@@ -6,12 +6,12 @@
     #random settings
     csv_path: /ansible/reports
     csv_filename: report.csv
-    headers: Hostname,Distro Ver,Kernel Ver,Last Rebooted
+    headers: Hostname,OS,Distro Ver,Kernel Ver,Postfix Status,FQDN,Total VCPU,Total RAM,Total SWAP,Total Disk,Hyper-V
 
   tasks:
-  - name: Gather last reboot
-    ansible.builtin.shell: last reboot | grep -m1 "" | awk '{ print $1, $6, $7, $8 }'
-    register: rebooted
+  - name: Gather last Postfix Status
+    ansible.builtin.shell:  systemctl status postfix | egrep -i Active | awk '{ print $2,$3}'
+    register: active
 
   - name: Save CSV headers
     ansible.builtin.lineinfile:
@@ -25,7 +25,7 @@
   - name: Build out CSV file
     ansible.builtin.lineinfile:
       dest: "{{ csv_path }}/{{ csv_filename }}"
-      line: "{{ inventory_hostname }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ rebooted.stdout }}"
+      line: "{{ inventory_hostname }},{{ ansible_distribution }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ active.stdout }},{{ ansible_fqdn }},{{ ansible_processor_vcpus }},{{ ansible_memtotal_mb }},{{ ansible_swaptotal_mb }},{{ ansible_devices.vda.partitions.vda1.size }},{{ ansible_product_name }}"
       create: true
       state: present
     delegate_to: localhost
@@ -34,23 +34,5 @@
     community.general.read_csv:
       path: "{{ csv_path }}/{{ csv_filename }}"
     register: csv_file
-    delegate_to: localhost
-    run_once: true
-
-#  - name: debug csv_file
-#    debug:
-#      var: csv_file
-#    run_once: true
-
-  - name: Send Email
-    community.general.mail:
-      host: "{{ email_host }}"
-      from: "{{ email_from }}"
-      port: 25
-      to: "{{ email_to }}"
-      subject: "[Ansible] {{ email_subject }}"
-      body: "{{ lookup('template', 'report.html.j2') }}"
-      attach: "{{ csv_path }}/{{ csv_filename }}"
-      subtype: html
     delegate_to: localhost
     run_once: true
