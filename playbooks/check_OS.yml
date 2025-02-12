@@ -5,49 +5,50 @@
   roles:
     - check_ip_version_kernel
     - check_timezone
-    - check_var_partition_conf
-    - check_app_partition_conf
-    - check_sudoers
-    - check_wheel_users
-    - check_sudo_user_bashshell
-    - check_passwd_expiration
-    - check_passwd_complexity_hashing
-    - check_pam_conf
-    - check_nofile_conf
-    - check_nproc_conf
-    - check_bonding_interfaces
-    - check_networkcard_speed
-    - check_networkmanager
-    - check_virtual_network
-    - check_SELinux_status
-    - check_netfilter_ hashsize
-    - check_sv_multipath
-    - check_max_open_files
-    - check_required_services
-    - check_ntp_conf
-    - check_haveged_services
-    - check_java_processes_running_as_root
-    - check_SHA512_hashing_conf
-    - check_SSH_service_conf
-    - check_permitRootLogin_conf
-    - check_allow_users
-    - check_TMOUT_conf
-    - check_openssl
-    - check_unowned_files
-    - check_dangerous_environment_variables
-    - check_crontab_conf 
-    - check_cron_files
-    - check_logrotate_conf
-    - check_iptables_services
-    - check_logrotate_iptables
-    - check_cmdlog_conf_logratate_for_it
-    - check_rsyslogconf
-    - check_bashrc_conf_for_cmdlog_service
-    - check_rsyslogconf_kerndebug_logging
-    - check_SIRC_status
-    - check_zone_reclaim_mode
-    - check_swap_conf
-    - check_Oracle_ASM_configuration
-    - check_for_required_packages
-    - check_the_repo_connection
-    - check_LLDP_conf
+    # - check_var_partition_conf
+    # - check_app_partition_conf
+    # - check_sudoers
+    # - check_wheel_users
+    # - check_sudo_user_bashshell
+    # - check_passwd_expiration
+    # - check_passwd_complexity_hashing
+    # - check_pam_conf
+    # - check_nofile_conf
+    # - check_nproc_conf
+    # - check_bonding_interfaces
+    # - check_networkcard_speed
+    # - check_networkmanager
+    # - check_virtual_network
+    # - check_SELinux_status
+    # - check_netfilter_ hashsize
+    # - check_sv_multipath
+    # - check_max_open_files
+    # - check_required_services
+    # - check_ntp_conf
+    # - check_haveged_services
+    # - check_java_processes_running_as_root
+    # - check_SHA512_hashing_conf
+    # - check_SSH_service_conf
+    # - check_permitRootLogin_conf
+    # - check_allow_users
+    # - check_TMOUT_conf
+    # - check_openssl
+    # - check_unowned_files
+    # - check_dangerous_environment_variables
+    # - check_crontab_conf 
+    # - check_cron_files
+    # - check_logrotate_conf
+    # - check_iptables_services
+    # - check_logrotate_iptables
+    # - check_cmdlog_conf_logratate_for_it
+    # - check_rsyslogconf
+    # - check_bashrc_conf_for_cmdlog_service
+    # - check_rsyslogconf_kerndebug_logging
+    # - check_SIRC_status
+    # - check_zone_reclaim_mode
+    # - check_swap_conf
+    # - check_Oracle_ASM_configuration
+    # - check_for_required_packages
+    # - check_the_repo_connection
+    # - check_LLDP_conf
+    - summary_checklist_reports
