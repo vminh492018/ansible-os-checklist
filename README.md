@@ -12,7 +12,7 @@ This guide provides an example of the prerequisites for using the software and d
   ```
 * Docker images (optinal)
   ```
-  - docker pull vminh492018/ansible-ubuntu:latest
+  - docker pull vminh492018/ansible-ubuntu:2.0
   ```
 * Docker version (Centos7 - EOL)
   ```
@@ -96,7 +96,7 @@ This guide provides an example of the prerequisites for using the software and d
 
 ### 2. Docker Setup
 #### Step 1: Pull Docker Image
-* Download the Docker image *vminh492018/ansible-ubuntu:latest*:
+* Download the Docker image *vminh492018/ansible-ubuntu:2.0*:
    ```bash
    docker pull vminh492018/ansible-ubuntu:22.04
    ```
@@ -104,10 +104,10 @@ This guide provides an example of the prerequisites for using the software and d
 #### Step 2: Run Container with Mounted Directory
 * Start a container with the working directory mounted and the correct UID/GID:
    ```bash
-  docker run -d -it --name ansible_container --user $(id -u devops):$(id -g devops) --mount type=bind,source=/home/devops/ansible-projects,target=/home/devops/ansible-projects vminh492018/ansible-ubuntu:22.04
+  docker run -d -it --name ansible_container --user $(id -u devops):$(id -g devops) --mount type=bind,source=/home/devops/ansible-projects,target=/home/devops/ansible-projects vminh492018/ansible-ubuntu:2.0
 
    OR: (Older docker version)
-   docker run -d -it --name ansible_container --user $(id -u devops):$(id -g devops) -v /home/devops/ansible-projects:/home/devops/ansible-projects vminh492018/ansible-ubuntu:22.04
+   docker run -d -it --name ansible_container --user $(id -u devops):$(id -g devops) -v /home/devops/ansible-projects:/home/devops/ansible-projects vminh492018/ansible-ubuntu:2.0
    ```
 * NOTE: `<UID>` and `<GID>` with the values = 2222
 
