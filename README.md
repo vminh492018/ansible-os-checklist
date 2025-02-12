@@ -12,7 +12,7 @@ This guide provides an example of the prerequisites for using the software and d
   ```
 * Docker images (optinal)
   ```
-  - docker pull vminh492018/ansible-ubuntu:22.04
+  - docker pull vminh492018/ansible-ubuntu:latest
   ```
 * Docker version (Centos7 - EOL)
   ```
@@ -96,7 +96,7 @@ This guide provides an example of the prerequisites for using the software and d
 
 ### 2. Docker Setup
 #### Step 1: Pull Docker Image
-* Download the Docker image *vminh492018/ansible-ubuntu:22.04*:
+* Download the Docker image *vminh492018/ansible-ubuntu:latest*:
    ```bash
    docker pull vminh492018/ansible-ubuntu:22.04
    ```
@@ -111,7 +111,7 @@ This guide provides an example of the prerequisites for using the software and d
    ```
 * NOTE: `<UID>` and `<GID>` with the values = 2222
 
-### Step 3: Create SSH Key and Configure SSH
+#### Step 3: Create SSH Key and Configure SSH
 #### Generate SSH Key Inside the Container
 * Access the container if not already inside:
    ```bash
