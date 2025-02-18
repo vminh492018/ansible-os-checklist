@@ -1,30 +1,39 @@
 ---
-- name: Get system information
+- name: Get and check system information
   ansible.builtin.setup:
     gather_subset:
       - network
       - hardware
       - virtual
 
-- name: Check OS version and kernel
+- name: Set facts after checking.......    
   block:
-    - name: Print IP, OS version, and kernel
-      debug:
-        msg:
-          - "IP Address: {{ ansible_default_ipv4.address }}"
-          - "OS Version: {{ ansible_distribution }} {{ ansible_distribution_version }}"
-          - "Kernel Version: {{ ansible_kernel }}"
+# CentOS logic
+    - name: PASS if CentOS version is >= 7.9    
+      set_fact:
+        check_ip_version_kernel: "PASS"
+      when: ansible_distribution == "CentOS" and ansible_distribution_version is version("7.9", ">=")
 
-    - name: Check CentOS version
-      fail:
-        msg: 
-          - "CentOS version < 7.9. Failed."
-          - "OS Version: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+    - name: FAIL if CentOS version is < 7.9    
+      set_fact:
+        check_ip_version_kernel: "FAIL"
       when: ansible_distribution == "CentOS" and ansible_distribution_version is version("7.9", "<")
 
-    - name: OS version check passed
-      debug:
-        msg: 
-          - "CentOS version >= 7.9. Passed."
-          - "OS Version: {{ ansible_distribution }} {{ ansible_distribution_version }}"
-      when: ansible_distribution == "CentOS" and ansible_distribution_version is version("7.9", ">=")
+    # Ubuntu logic
+    - name: PASS for all Ubuntu versions    
+      set_fact:
+        check_ip_version_kernel: "PASS"
+      when: ansible_distribution == "Ubuntu"
+
+    # Other OS logic
+    - name: N/A for non-CentOS/Ubuntu systems
+      set_fact:
+        check_ip_version_kernel: "N/A"
+      when: ansible_distribution not in ["CentOS", "Ubuntu"]
+
+- name: Detailed results are output after the checking process is finished....
+  debug:
+    msg:
+      - "IP Address: {{ ansible_default_ipv4.address }}"
+      - "OS Version: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      - "Kernel Version: {{ ansible_kernel }}"

@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y \
     sshpass \
     && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 \
     && pip3 install --no-cache-dir "ansible-core==${ANSIBLE_VERSION}" jinja2==3.1.2 paramiko \
+    && ansible-galaxy collection install community.general \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

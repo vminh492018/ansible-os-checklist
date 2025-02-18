@@ -1,22 +1,36 @@
 ---
-- name: Get timezone for different OS
-  shell: |
-    if command -v timedatectl &> /dev/null; then
-      timedatectl | grep -E '^ *Time zone:' | awk '{print $3}' || echo "?????"
-    else
-      echo "timedatectl command not found"
-    fi
-  register: current_timezone
-  changed_when: false
+- name: Checking the timezone for different operating systems....
+  block:
+    - name: Get and check timezone
+      shell: |
+        if command -v timedatectl &> /dev/null; then
+          timedatectl | grep -E '^ *Time zone:' | awk '{print $3}' || echo "?????"
+        else
+          echo "timedatectl command not found"
+        fi
+      register: current_timezone
+      changed_when: false
 
-- name: Check timezone offset
-  shell: date +%z
-  register: current_offset
-  changed_when: false
+    - name: Get and check timezone offset
+      shell: date +%z
+      register: current_offset
+      changed_when: false
 
-- name: Validate timezone
+- name: Set facts after checking.......    
+  block:
+    - name: PASS if timezone offset is +0700
+      set_fact:
+        check_timezone: "PASS"
+      when: current_offset.stdout.strip() == '+0700'
+
+    - name: FAIL if timezone offset is not +0700
+      set_fact:
+        check_timezone: "FAIL"
+      when: current_offset.stdout.strip() != '+0700'
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg:
       - "Current Timezone: {{ current_timezone.stdout.split()[-1] if current_timezone.stdout else 'Unknown' }}"
       - "Timezone Offset: {{ current_offset.stdout.strip() }}"
-      - "{% if current_offset.stdout.strip() == '+0700' %} Pass {% else %} Fail {% endif %}"
+      # - "{% if current_offset.stdout.strip() == '+0700' %} Pass {% else %} Fail {% endif %}"

@@ -12,7 +12,8 @@ This guide provides an example of the prerequisites for using the software and d
   ```
 * Docker images (optinal)
   ```
-  - docker pull vminh492018/ansible-ubuntu:2.0
+  - docker pull vminh492018/ansible-ubuntu:1.0 (user: vt_admin)
+  - docker pull vminh492018/ansible-ubuntu:2.0 (user: devops)
   ```
 * Docker version (Centos7 - EOL)
   ```
@@ -154,7 +155,7 @@ This guide provides an example of the prerequisites for using the software and d
    - Replace `<remote_server_ip>` with the target server IP.
    - A successful `pong` response indicates the connection is working.
 
-## Summary
+### 4. Summary
 - **Local:** Set up the `devops` user with sudo and SSH access, and create a working directory.
 - **Docker:** Run the container with the correct UID/GID and mount the working directory.
 - **SSH Key:** Generate and configure SSH keys for connecting to remote servers.
@@ -166,32 +167,50 @@ This guide provides an example of the prerequisites for using the software and d
 [defaults]
 inventory =  /home/minhvx/Ansible_projects/VHKT_VTT/inventory/hosts.ini
 roles_path = /home/minhvx/Ansible_projects/VHKT_VTT/roles
+host_key_checking = False
 ```
 ### Inventory
 ```
-<!--  Use with root user
-[VHKT_server]
-centos9 ansible_host=localhost
-centos7 ansible_host=192.168.153.31
-ubuntu2204 ansible_host=192.168.153.44
--->
-
-<!-- Use with user can sudo -->
-[VHKT_Test_lab]
-ansible-server-testlab ansible_host= [ip_host] ansible_user=minhvx ansible_become=yes ansible_become_method=sudo ansible_become_password=...
+[TestLab]
+192.168.153.31 ansible_host=192.168.153.31 ansible_user=vt_admin ansible_become=yes ansible_become_method=sudo ansible_ssh_pass=1 ansible_become_password=1
 ```
 
 ### Playbook
 ```
 ---
 - name: Check OS information
-  hosts: VHKT_server
-  become: true  # User can sudo
-  roles:
-    - check_ip_version_kernel
-    - check_timezone
-    - check_var_partition_conf
+  hosts: TestLab
+  become: true
+  vars:
+    csv_path: /ansible/reports
+    csv_filename: report.csv
+    headers: IP,check_ip_version_kernel,check_timezone,check_var_partition_conf,check_app_partition_conf
+  tasks:
+  - name: Create CSV headers
+    ansible.builtin.lineinfile:
+      dest: "{{ csv_path }}/{{ csv_filename }}"
+      line: "{{ headers }}"
+      create: true
+      state: present
+    delegate_to: localhost
+    run_once: true
+
+  - name: Execute all roles and save the results to CSV file....
+    include_role:
+      name: "{{ item }}"
+    loop:
+      - check_ip_version_kernel
+      - check_timezone
+      - check_var_partition_conf
+      - check_app_partition_conf
  .....
+  - name: Build out CSV file
+   ansible.builtin.lineinfile:
+     dest: "{{ csv_path }}/{{ csv_filename }}"
+     line: "{{ inventory_hostname }},{{ check_ip_version_kernel }},{{ check_timezone }},{{ check_var_partition_conf }},{{ check_app_partition_conf }}"
+     create: true
+     state: present
+   delegate_to: localhost
 ```
 
 ### Run command

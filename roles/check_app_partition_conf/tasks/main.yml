@@ -5,12 +5,26 @@
   register: check_app
   changed_when: false
 
-- name: Warn if application partition is not found
-  debug:
-    msg: "Application partition (/u01...) not found in /etc/fstab ==> WARNING!"
-  when: check_app.stdout.strip() == ""
+- name: Set facts after checking .....
+  block:
+    - name: PASS if application partition is separate in /etc/fstab
+      set_fact:
+        check_app_partition_conf: "PASS"
+      when: check_app.stdout.strip() != ""
 
-- name: Confirm application partition is separate in /etc/fstab
-  debug:
-    msg: "Application partition (/u01...) is separate from root (/) ==> OK"
-  when: check_app.stdout.strip() != ""
+    - name: WARNING if /var partition is not found in /etc/fstab
+      set_fact:
+        check_app_partition_conf : "WARNING - Application partition (/u01...) not found in /etc/fstab"
+      when: check_app.stdout.strip() == ""
+
+- name: Detailed results are output after the checking process is finished....
+  block:
+    - name: If application partition is not found    
+      debug:
+        msg: "Application partition (/u01...) not found in /etc/fstab"
+      when: check_app.stdout.strip() == ""
+
+    - name: If application partition is separate in /etc/fstab
+      debug:
+        msg: "Application partition (/u01...) is separate from root (/)"
+      when: check_app.stdout.strip() != ""
