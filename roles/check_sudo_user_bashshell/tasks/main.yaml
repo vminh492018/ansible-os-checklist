@@ -1,42 +1,51 @@
 ---
-- name: Get list of users with /bin/bash shell and UID >= 400
-  shell: |
-    awk -F: '($7 == "/bin/bash" && $3 >= 400) {print $1}' /etc/passwd
-  register: user_list
-  changed_when: false
+- name: Obtain and review the details of sudo users within the Bash shell environment .....
+  block:
+    - name: Get list of users with /bin/bash shell and UID >= 400
+      shell: |
+        awk -F: '($7 == "/bin/bash" && $3 >= 400) {print $1}' /etc/passwd
+      register: user_list
+      changed_when: false
 
-- name: Check if user has standard sudo privileges
-  shell: |
-    grep -v '^#' /etc/sudoers | grep -w "{{ item }}" | grep "ALL=(ALL) ALL"
-  register: check_user_sudo
-  failed_when: false
-  changed_when: false
-  with_items: "{{ user_list.stdout_lines }}"
+    - name: Check if user has standard sudo privileges
+      shell: |
+        grep -v '^#' /etc/sudoers | grep -w "{{ item }}" | grep "ALL=(ALL) ALL"
+      register: check_user_sudo
+      failed_when: false
+      changed_when: false
+      with_items: "{{ user_list.stdout_lines }}"
 
-- name: Check if user has NOPASSWD sudo privileges
-  shell: |
-    grep -v '^#' /etc/sudoers | grep -w "{{ item }}" | grep "ALL=(ALL) NOPASSWD: ALL"
-  register: check_user_nopass_sudo
-  failed_when: false
-  changed_when: false
-  with_items: "{{ user_list.stdout_lines }}"
+    - name: Check if user has NOPASSWD sudo privileges
+      shell: |
+        grep -v '^#' /etc/sudoers | grep -w "{{ item }}" | grep "ALL=(ALL) NOPASSWD: ALL"
+      register: check_user_nopass_sudo
+      failed_when: false
+      changed_when: false
+      with_items: "{{ user_list.stdout_lines }}"
 
-- name: Display results
+- name: Set facts after checking.......    
+  block:  
+    - name: PASS if no sudo entries found for any user
+      set_fact:
+        check_sudo_user_bashshell: "PASS"
+      when:
+        - (check_user_sudo.results | selectattr('stdout', '!=', '') | list | length == 0)
+        - (check_user_nopass_sudo.results | selectattr('stdout', '!=', '') | list | length == 0)
+
+    - name: WARNING if any sudo entries found
+      set_fact:
+        check_sudo_user_bashshell: "WARNING - Standard and NOPASSWD sudo found"
+      when:
+        - (check_user_sudo.results | selectattr('stdout', '!=', '') | list | length > 0) or 
+          (check_user_nopass_sudo.results | selectattr('stdout', '!=', '') | list | length > 0)
+
+- name: Detailed results are output after the checking process is finished....
   debug:
-    msg: >-
-      User {{ user_list.stdout_lines[item_index] }}:
-      {% if check_user_sudo.results[item_index].stdout == '' %}
-      Standard sudo not found -> OK
-      {% else %}
-      Standard sudo found -> WARNING
-      {% endif %}
-      {% if check_user_nopass_sudo.results[item_index].stdout == '' %}
-      NOPASSWD sudo not found -> OK
-      {% else %}
-      NOPASSWD sudo found -> WARNING
-      {% endif %}
+    msg:
+      - "User {{ user_list.stdout_lines[item] }}:"
+      - "- Standard sudo: {{ 'Not Found' if check_user_sudo.results[item].stdout == '' else 'Found' }}"
+      - "- NOPASSWD sudo: {{ 'Not Found' if check_user_nopass_sudo.results[item].stdout == '' else 'Found' }}"
+      - "- Status check: {{ check_sudo_user_bashshell | upper }}"
   loop: "{{ range(0, user_list.stdout_lines | length) | list }}"
   loop_control:
-    label: "{{ user_list.stdout_lines[item_index] }}"
-  vars:
-    item_index: "{{ item }}"
+    label: "{{ user_list.stdout_lines[item] }}"

@@ -11,16 +11,16 @@
         check_sudoers: "PASS"
       when: check_wheel.rc != 0
 
-    - name: WARNING if wheel group configuration exists
+    - name: FAIL if wheel group configuration exists
       set_fact:
-        check_sudoers: "WARNING - Found configuration for wheel group: {{ check_wheel.stdout }}"
+        check_sudoers: "FAIL - Found configuration for wheel group: {{ check_wheel.stdout }}"
       when: check_wheel.rc == 0
 
 - name: Detailed results are output after the checking process is finished....
   debug:
     msg: >-
       {%- if check_wheel.rc == 0 -%}
-      WARNING: Found configuration for wheel group: {{ check_wheel.stdout }}
+      [FAIL] Found configuration for wheel group: {{ check_wheel.stdout }}
       {%- else -%}
-      OK: Configuration for wheel group does not exist.
+      [PASS] Configuration for wheel group does not exist.
       {%- endif -%}

@@ -1,26 +1,46 @@
 ---
-- name: Get list of users with bash shell and UID >= 400
-  shell: "awk -F: '($7 == \"/bin/bash\" && $3 >= 400) {print $1}' /etc/passwd"
-  register: user_list_output
-  changed_when: false
+- name: Obtain and review the details of password expiration date for each user .....
+  block:
+    - name: Get list of users with bash shell and UID >= 400
+      shell: "awk -F: '($7 == \"/bin/bash\" && $3 >= 400) {print $1}' /etc/passwd"
+      register: user_list_output
+      changed_when: false
 
-- name: Set user_list variable
-  set_fact:
-    user_list: "{{ user_list_output.stdout_lines }}"
+    - name: Set user_list variable
+      set_fact:
+        user_list: "{{ user_list_output.stdout_lines }}"
 
-- name: Get password expiration date for each user
-  shell: |
-    chage -l {{ item }} | grep "Password expires" | awk '{print $4}'
-  register: password_expiry_results
-  with_items: "{{ user_list }}"
-  failed_when: false
+    - name: Get password expiration date for each user
+      shell: |
+        chage -l {{ item }} | grep "Password expires" | awk '{print $4}'
+      register: password_expiry_results
+      with_items: "{{ user_list }}"
+      failed_when: false
 
-- name: Display password expiration status in a readable format
+- name: Set facts after checking.......
+  block:
+    - name: PASS if password never expires 
+      set_fact:
+        check_passwd_expiration: "PASS"
+      when: item.stdout_lines[0] == 'never'
+      loop: "{{ password_expiry_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: FAIL if password expires 
+      set_fact:
+        check_passwd_expiration: "FAIL"
+      when: item.stdout_lines[0] != 'never'
+      loop: "{{ password_expiry_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg:
       - "User: {{ item.item }}"
-      - "Password expires: {{ item.stdout_lines[0] }}"
-      - "Status: {{ 'OK' if item.stdout_lines[0] == 'never' else 'WARNING' }}"
+      - "- Password expires: {{ item.stdout_lines[0] }}"
+      - "- Status check: {{ 'PASS' if item.stdout_lines[0] == 'never' else 'FAIL' }}"
   loop: "{{ password_expiry_results.results }}"
   loop_control:
     label: "{{ item.item }}"

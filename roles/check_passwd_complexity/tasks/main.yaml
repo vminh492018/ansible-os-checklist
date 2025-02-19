@@ -1,0 +1,27 @@
+---
+- name: Check password complexity
+  shell: |
+    grep -v ^# /etc/pam.d/system-auth | grep -w password | grep -w "retry=3" | grep -w "minlen=8" | grep -w "dcredit=-1" | grep -w "ucredit=-1" | grep -w "ocredit=-1" | grep -w "lcredit=-1"
+  register: password_complexity
+  failed_when: false
+
+- name: Set facts after checking.......    
+  block:  
+    - name: PASS if password complexity configured
+      set_fact:
+        check_passwd_complexity: "PASS"
+      when: password_complexity.stdout != ""
+
+    - name: FAIL if password complexity not configured
+      set_fact:
+        check_passwd_complexity: "FAIL"
+      when: password_complexity.stdout == ""
+
+- name: Detailed results are output after the checking process is finished....
+  debug:
+    msg: >-
+      {% if password_complexity.stdout == "" %}
+      [FAIL] Password complexity not configured
+      {% else %}
+      [OK] Password complexity configured
+      {% endif %}

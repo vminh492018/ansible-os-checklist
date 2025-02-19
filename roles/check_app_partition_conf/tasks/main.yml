@@ -12,9 +12,9 @@
         check_app_partition_conf: "PASS"
       when: check_app.stdout.strip() != ""
 
-    - name: WARNING if /var partition is not found in /etc/fstab
+    - name: FAIL if /var partition is not found in /etc/fstab
       set_fact:
-        check_app_partition_conf : "WARNING - Application partition (/u01...) not found in /etc/fstab"
+        check_app_partition_conf : "FAIL - Application partition (/u01...) not found in /etc/fstab"
       when: check_app.stdout.strip() == ""
 
 - name: Detailed results are output after the checking process is finished....

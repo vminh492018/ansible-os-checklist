@@ -12,12 +12,24 @@
   failed_when: false
   loop: "{{ user_list.stdout_lines }}"
 
-- name: Show check status
+- name: Set facts after checking.......    
+  block:  
+    - name: PASS if user has configured 'nofile'
+      set_fact:
+        check_nofile_conf: "PASS"
+      when: nofile_check is defined and nofile_check.stdout_lines is defined and nofile_check.stdout_lines|length > 0
+    
+    - name: FAIL if user has not configured 'nofile'
+      set_fact:
+        check_nofile_conf: "FAIL"
+      when: not (nofile_check is defined and nofile_check.stdout_lines is defined and nofile_check.stdout_lines|length > 0)
+        
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: >-
       {% if nofile_check is defined and nofile_check.stdout_lines is defined and nofile_check.stdout_lines|length > 0 %}
-      User {{ item }}: Has configured 'nofile' ==> OK
+      [PASS] User {{ item }} has configured 'nofile'
       {% else %}
-      User {{ item }}: Has not configured 'nofile' ==> NOK
+      [FAIL] User {{ item }} has not configured 'nofile'
       {% endif %}
   loop: "{{ user_list.stdout_lines}}"

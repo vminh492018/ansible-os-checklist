@@ -18,13 +18,13 @@
         check_var_partition_conf: "PASS"
       when: var_partition_result.rc == 0
 
-    - name: WARNING if /var partition is not found in /etc/fstab
+    - name: FAIL if /var partition is not found in /etc/fstab
       set_fact:
-        check_var_partition_conf: "WARNING - /var partition is not found in /etc/fstab"
+        check_var_partition_conf: "FAIL - /var partition is not found in /etc/fstab"
       when: var_partition_result.rc != 0
 
 - name: Detailed results are output after the checking process is finished....
   debug:
     msg: 
       - "{% if 'vmware' in sys_vendor_result.stdout | lower | replace(',', '') %}VMware virtualized server does not need /var partition in /etc/fstab ==> OK{% else %}Server isn't VMware{% endif %}"
-      - "{% if var_partition_result.rc != 0 %}/var partition not found in /etc/fstab ==> WARNING{% else %}/var partition is in /etc/fstab ==> OK.{% endif %}"
+      - "{% if var_partition_result.rc != 0 %}/var partition not found in /etc/fstab [FAIL]{% else %}/var partition is in /etc/fstab [PASS]{% endif %}"

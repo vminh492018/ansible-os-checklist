@@ -1,0 +1,27 @@
+---
+- name: Check password hashing
+  shell: |
+    grep -v ^# /etc/pam.d/system-auth | grep -w password | grep -w sha512 | grep -w "remember=5"
+  register: password_hashing
+  failed_when: false
+
+- name: Set facts after checking.......    
+  block:  
+    - name: PASS if password hashing configured 
+      set_fact:
+        check_passwd_hashing: "PASS"
+      when: password_hashing.stdout != ""
+
+    - name: FAIL if password hashing not configured 
+      set_fact:
+        check_passwd_hashing: "FAIL - Standard and NOPASSWD sudo found"
+      when: password_hashing.stdout == ""
+
+- name: Detailed results are output after the checking process is finished....
+  debug:
+    msg: >-
+      {% if password_hashing.stdout == "" %}
+      [FAIL] Password hashing not configured 
+      {% else %}
+      [OK] Password hashing configured
+      {% endif %}

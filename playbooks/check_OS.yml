@@ -5,7 +5,7 @@
   vars:
     csv_path: /ansible/reports
     csv_filename: report.csv
-    headers: IP,check_ip_version_kernel,check_timezone,check_var_partition_conf,check_app_partition_conf,check_sudoers,check_wheel_users
+    headers: IP,check_ip_version_kernel,check_timezone,check_var_partition_conf,check_app_partition_conf,check_sudoers,check_wheel_users,check_passwd_expiration,check_passwd_complexity,check_passwd_hashing,check_pam_conf,check_nofile_conf,check_nproc_conf
   tasks:
   - name: Create CSV headers
     ansible.builtin.lineinfile:
@@ -26,12 +26,13 @@
       - check_app_partition_conf
       - check_sudoers
       - check_wheel_users
-      # - check_sudo_user_bashshell
-      # - check_passwd_expiration
-      # - check_passwd_complexity_hashing
-      # - check_pam_conf
-      # - check_nofile_conf
-      # - check_nproc_conf
+      - check_sudo_user_bashshell
+      - check_passwd_expiration
+      - check_passwd_complexity
+      - check_passwd_hashing
+      - check_pam_conf
+      - check_nofile_conf
+      - check_nproc_conf
       # - check_bonding_interfaces
       # - check_networkcard_speed
       # - check_networkmanager
@@ -72,7 +73,7 @@
   - name: Build out CSV file
     ansible.builtin.lineinfile:
       dest: "{{ csv_path }}/{{ csv_filename }}"
-      line: "{{ inventory_hostname }},{{ check_ip_version_kernel }},{{ check_timezone }},{{ check_var_partition_conf }},{{ check_app_partition_conf }},{{ check_sudoers}},{{ check_wheel_users }}"
+      line: "{{ inventory_hostname }},{{ check_ip_version_kernel }},{{ check_timezone }},{{ check_var_partition_conf }},{{ check_app_partition_conf }},{{ check_sudoers}},{{ check_wheel_users }},{{ check_passwd_expiration }},{{ check_passwd_complexity}},{{ check_passwd_hashing }},{{ check_pam_conf }},{{ check_nofile_conf }}, {{ check_nproc_conf }}"
       create: true
       state: present
     delegate_to: localhost

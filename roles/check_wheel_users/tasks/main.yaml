@@ -24,15 +24,15 @@
         check_wheel_users: "PASS"
       when: item.rc is defined and item.rc != 0
 
-    - name: WARNING if wheel group configuration exists
+    - name: FAIL if wheel group configuration exists
       set_fact:
-        check_wheel_users: "WARNING - Users found in wheel group"
+        check_wheel_users: "FAIL - Users found in wheel group"
       when: item.rc is not defined or item.rc == 0
 
 - name: Detailed results are output after the checking process is finished....
   ansible.builtin.debug:
     msg: >-
-      User {{ item.item }} is{{ 'not in the wheel group' if item.rc is defined and item.rc != 0 else 'in the wheel group (WARNING)' }}.
+      User {{ item.item }} is{{ 'not in the wheel group [PASS]' if item.rc is defined and item.rc != 0 else 'in the wheel group (FAIL)' }}.
   with_items: "{{ user_in_wheel_result.results | default([]) }}"
   loop_control:
     label: "{{ item.item }}"

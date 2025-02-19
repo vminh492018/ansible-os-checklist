@@ -5,11 +5,29 @@
   register: user_list
   failed_when: false
 
-- name: Check nproc configuration for each user
+- name: Set facts after checking.......
+  block:
+    - name: PASS if users nproc configured
+      set_fact:
+        check_nproc_conf: "PASS"
+      when: lookup('file', '/etc/security/limits.conf') | regex_search('^' ~ item ~ '.*nproc')
+      loop: "{{ user_list.stdout_lines }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: FAIL if users nproc not configured
+      set_fact:
+        check_nproc_conf: "FAIL"
+      when: not (lookup('file', '/etc/security/limits.conf') | regex_search('^' ~ item ~ '.*nproc'))
+      loop: "{{ user_list.stdout_lines }}"
+      loop_control:
+        label: "{{ item }}"
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: >-
       {% set nproc_check = lookup('file', '/etc/security/limits.conf') | regex_search('^' ~ item ~ '.*nproc') %}
-      {% if nproc_check %}User {{ item }}: {{ nproc_check }} ==> OK
-      {% else %}User {{ item }}: nproc not configured ==> WARNING
+      {% if nproc_check %}[PASS] User {{ item }}: {{ nproc_check }} 
+      {% else %}[FAIL] User {{ item }}: nproc not configured ==> WARNING
       {% endif %}
   loop: "{{ user_list.stdout_lines }}"

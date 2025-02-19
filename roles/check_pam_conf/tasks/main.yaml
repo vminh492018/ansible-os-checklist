@@ -5,12 +5,24 @@
   register: pam_su_config
   failed_when: false
 
-- name: Checking PAM status
-  ansible.builtin.debug:
+- name: Set facts after checking.......    
+  block:  
+    - name: PASS if Configuration has been set to restrict root access to wheel group members only
+      set_fact:
+        check_pam_conf: "PASS"
+      when: pam_su_config.stdout != ""
+
+    - name: FAIL if Not yet configured to allow only users in the wheel group
+      set_fact:
+        check_pam_conf: "FAIL"
+      when: pam_su_config.stdout == ""
+
+- name: Detailed results are output after the checking process is finished....
+  debug:
     msg: >
       {% if pam_su_config.stdout == "" %}
-      [WARNING!] Not yet configured to allow only users in the wheel group.
+      [FAIL] Not yet configured to allow only users in the wheel group.
       {% else %}
-      [OK] Configuration has been set to restrict root access to wheel group members only
+      [PASS] Configuration has been set to restrict root access to wheel group members only
       {{ pam_su_config.stdout}}
       {% endif %}
