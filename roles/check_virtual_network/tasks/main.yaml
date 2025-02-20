@@ -5,13 +5,26 @@
     # Check if any virtual network interfaces (virbr or bridge) exist
     check_virbr=$(ip link show | grep -E 'virbr|bridge')
     if [[ -n "$check_virbr" ]]; then
-        echo "Virtual network interface(s) found ==> WARNING"
+        echo "Virtual network interface(s) found [FAIL]"
     else
-        echo "No virtual network interface found ==> OK"
+        echo "No virtual network interface found [PASS]"
     fi
   register: virtual_network_check
-  ignore_errors: yes
+  ignore_errors: true
 
-- name: Show virtual network interfaces check result
+- name: Set facts after checking.......
+  block:
+    - name: PASS if no virtual network interface found
+      set_fact:
+        check_virtual_network: "PASS"
+      when: virtual_network_check.stdout is search("No virtual network interface found \\[PASS\\]")
+
+    - name: FAIL if virtual network interface found
+      set_fact:
+        check_virtual_network: "FAIL"
+      when: virtual_network_check.stdout is search("Virtual network interface(s) found \\[FAIL\\]")
+
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     var: virtual_network_check.stdout

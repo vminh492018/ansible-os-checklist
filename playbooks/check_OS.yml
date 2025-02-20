@@ -5,7 +5,7 @@
   vars:
     csv_path: /ansible/reports
     csv_filename: report.csv
-    headers: IP,check_ip_version_kernel,check_timezone,check_var_partition_conf,check_app_partition_conf,check_sudoers,check_wheel_users,check_passwd_expiration,check_passwd_complexity,check_passwd_hashing,check_pam_conf,check_nofile_conf,check_nproc_conf
+    headers: IP,check_ip_version_kernel,check_timezone,check_var_partition_conf,check_app_partition_conf,check_sudoers,check_wheel_users,check_passwd_expiration,check_passwd_complexity,check_passwd_hashing,check_pam_conf,check_nofile_conf,check_nproc_conf,check_bonding_interfaces,check_networkcard_speed,check_networkmanager,check_virtual_network
   tasks:
   - name: Create CSV headers
     ansible.builtin.lineinfile:
@@ -33,10 +33,10 @@
       - check_pam_conf
       - check_nofile_conf
       - check_nproc_conf
-      # - check_bonding_interfaces
-      # - check_networkcard_speed
-      # - check_networkmanager
-      # - check_virtual_network
+      - check_bonding_interfaces
+      - check_networkcard_speed
+      - check_networkmanager
+      - check_virtual_network
       # - check_SELinux_status
       # - check_netfilter_ hashsize
       # - check_sv_multipath
@@ -73,7 +73,7 @@
   - name: Build out CSV file
     ansible.builtin.lineinfile:
       dest: "{{ csv_path }}/{{ csv_filename }}"
-      line: "{{ inventory_hostname }},{{ check_ip_version_kernel }},{{ check_timezone }},{{ check_var_partition_conf }},{{ check_app_partition_conf }},{{ check_sudoers}},{{ check_wheel_users }},{{ check_passwd_expiration }},{{ check_passwd_complexity}},{{ check_passwd_hashing }},{{ check_pam_conf }},{{ check_nofile_conf }}, {{ check_nproc_conf }}"
+      line: "{{ inventory_hostname }},{{ check_ip_version_kernel }},{{ check_timezone }},{{ check_var_partition_conf }},{{ check_app_partition_conf }},{{ check_sudoers}},{{ check_wheel_users }},{{ check_passwd_expiration }},{{ check_passwd_complexity}},{{ check_passwd_hashing }},{{ check_pam_conf }},{{ check_nofile_conf }},{{ check_nproc_conf }},{{ check_bonding_interfaces }},{{ check_networkcard_speed }},{{ check_networkmanager }},{{ check_virtual_network }}"
       create: true
       state: present
     delegate_to: localhost

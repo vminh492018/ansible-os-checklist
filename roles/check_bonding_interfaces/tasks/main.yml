@@ -1,35 +1,3 @@
-# - name: Check if server is VMware virtual machine
-#   ansible.builtin.command:
-#     cmd: cat /sys/class/dmi/id/sys_vendor
-#   register: sys_vendor
-#   failed_when: false
-
-# - name: Get bonding interfaces
-#   ansible.builtin.command:
-#     cmd: ip a
-#   register: ip_a_output
-
-# - name: Extract bonding interfaces
-#   ansible.builtin.set_fact:
-#     bond_interfaces: >-
-#       {{ ip_a_output.stdout_lines | select('match', '^\s*bond[0-9]+:')
-#       | map('regex_replace', '^\s*(bond[0-9]+):.*', '\1') | list }}
-
-# - name: Skip bonding check if VMware virtual machine
-#   ansible.builtin.debug:
-#     msg: "VMware virtual server does not require bonding ==> OK"
-#   when: sys_vendor.stdout is search('VMware')
-
-# - name: Warn if no bonding interfaces
-#   ansible.builtin.debug:
-#     msg: "Server has no bonding ==> WARNING"
-#   when: bond_interfaces | length == 0 and sys_vendor.stdout is not search('VMware')
-
-# - name: Process each bonding interface
-#   ansible.builtin.include_tasks: bonding_details.yml
-#   with_items: "{{ bond_interfaces }}"
-#   when: bond_interfaces | length > 0
-
 - name: Check if the server is a VMware virtual machine
   command: cat /sys/class/dmi/id/sys_vendor
   register: sys_vendor
@@ -40,12 +8,6 @@
   register: bond_interfaces
   changed_when: false
 
-- name: Display bonding interface check result
-  debug:
-    msg: 
-      - "Server Type: {{ 'VMware Virtual Machine' if 'VMware' in sys_vendor.stdout else 'Physical Server' }}"
-      - "Bonding Interfaces: {{ bond_interfaces.stdout_lines | join(', ') if bond_interfaces.stdout_lines else 'None' }}"
-
 - name: Loop through each bonding interface
   block:
     - name: Check active interfaces for each bond
@@ -55,12 +17,6 @@
       loop_control:
         label: "{{ item }}"
 
-    - name: Display active interface warning
-      debug:
-        msg: "WARNING: Bond {{ item.item }} has fewer than 2 active interfaces."
-      with_items: "{{ active_interfaces.results }}"
-      when: "item.stdout | int < 2"
-
     - name: Retrieve bonding mode and hash policy for each bond
       shell: |
         grep -E 'Bonding Mode|Transmit Hash Policy' /proc/net/bonding/{{ item }}
@@ -68,13 +24,6 @@
       with_items: "{{ bond_interfaces.stdout_lines }}"
       loop_control:
         label: "{{ item }}"
-
-    - name: Display bonding details
-      debug:
-        msg: |
-          Bond: {{ item.item }}
-          {{ item.stdout_lines | join('\n') }}
-      with_items: "{{ bond_details.results }}"
 
     - name: Check MII Status for slave interfaces
       block:
@@ -85,7 +34,7 @@
           loop_control:
             label: "{{ item }}"
 
-        - name: Check and display MII status
+        - name: Check MII status
           shell: |
             grep -A 2 'Slave Interface: {{ item.1 }}' /proc/net/bonding/{{ bond_interfaces.stdout_lines[item.0] }} | grep 'MII Status'
           register: mii_status
@@ -93,11 +42,54 @@
           loop_control:
             label: "{{ item.1 }} (Bond {{ bond_interfaces.stdout_lines[item.0] }})"
 
-        - name: Display MII status results
-          debug:
-            msg: 
-              - "Slave Interface: {{ item.item.1 }}"
-              - "Bond: {{ bond_interfaces.stdout_lines[item.item.0] }}"
-              - "Status: {{ 'OK' if 'up' in item.stdout else 'WARNING' }}"
-          with_items: "{{ mii_status.results }}"
-  when: "bond_interfaces.stdout_lines | length > 0"
+- name: Set facts after checking.......
+  block:
+    - name: PASS if no bonds or all checks pass
+      set_fact:
+        check_bonding_interfaces: "PASS"
+      when: >
+        (bond_interfaces.stdout_lines | length == 0) or
+        (
+          (active_interfaces.results | map(attribute='stdout') | map('int') | select('<', 2) | list | length == 0) and
+          (mii_status.results | map(attribute='stdout') | reject('search', 'up') | list | length == 0)
+        )
+
+    - name: FAIL if bonds exist and checks fail
+      set_fact:
+        check_bonding_interfaces: "FAIL"
+      when: >
+        (bond_interfaces.stdout_lines | length > 0) and
+        (
+          (active_interfaces.results | map(attribute='stdout') | map('int') | select('<', 2) | list | length > 0) or
+          (mii_status.results | map(attribute='stdout') | reject('search', 'up') | list | length > 0)
+        )
+
+- name: Detailed results are output after the checking process is finished....
+  block:
+    - name: Display bonding interface check result
+      debug:
+        msg: 
+          - "Server Type: {{ 'VMware Virtual Machine' if 'VMware' in sys_vendor.stdout else 'Physical Server' }}"
+          - "Bonding Interfaces: {{ bond_interfaces.stdout_lines | join(', ') if bond_interfaces.stdout_lines else 'None' }}"
+
+    - name: Display bonding details
+      debug:
+        msg: |
+          Bond: {{ item.item }}
+          {{ item.stdout_lines | join('\n') }}
+      with_items: "{{ bond_details.results }}"
+
+    - name: Display active interface warning
+      debug:
+        msg: "WARNING: Bond {{ item.item }} has fewer than 2 active interfaces."
+      with_items: "{{ active_interfaces.results }}"
+      when: "item.stdout | int < 2"
+
+    - name: Display MII status results
+      debug:
+        msg: 
+          - "Slave Interface: {{ item.item.1 }}"
+          - "Bond: {{ bond_interfaces.stdout_lines[item.item.0] }}"
+          - "Status: {{ 'OK' if 'up' in item.stdout else 'WARNING' }}"
+      with_items: "{{ mii_status.results }}"
+      when: "bond_interfaces.stdout_lines | length > 0"

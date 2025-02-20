@@ -12,9 +12,9 @@
 
         # Evaluate network card speed
         if [[ -z "$speed" || "$speed" -lt 1000 ]]; then
-            echo -e "Network card $interface has Unknown speed or less than 1Gbps ==> WARNING" 
+            echo -e "Network card $interface has Unknown speed or less than 1Gbps [FAIL]" 
         else
-            echo -e "Network card $interface has speed: $speed Mb/s ==> OK" 
+            echo -e "Network card $interface has speed: $speed Mb/s [PASS]" 
         fi
     }
 
@@ -27,8 +27,23 @@
   args:
     executable: /bin/bash
   register: network_speed_check
-  ignore_errors: yes
+  ignore_errors: true
 
-- name: Display network card speed check result
+- name: Set facts after checking.......
+  block:
+    - name: PASS if all network interfaces have speed >= 1Gbps
+      set_fact:
+        check_networkcard_speed: "PASS"
+      when: >
+        network_speed_check.stdout_lines | select('match', '.*PASS.*') | list | length ==
+        network_speed_check.stdout_lines | select('match', '.*Checking network card speed.*') | list | length
+
+    - name: FAIL if any network interface has speed < 1Gbps
+      set_fact:
+        check_networkcard_speed: "FAIL"
+      when: >
+        network_speed_check.stdout_lines | select('match', '.*FAIL.*') | list | length > 0
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     var: network_speed_check.stdout_lines

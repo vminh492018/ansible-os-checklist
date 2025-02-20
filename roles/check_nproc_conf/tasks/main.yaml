@@ -28,6 +28,6 @@
     msg: >-
       {% set nproc_check = lookup('file', '/etc/security/limits.conf') | regex_search('^' ~ item ~ '.*nproc') %}
       {% if nproc_check %}[PASS] User {{ item }}: {{ nproc_check }} 
-      {% else %}[FAIL] User {{ item }}: nproc not configured ==> WARNING
+      {% else %}[FAIL] User {{ item }}: nproc not configured
       {% endif %}
   loop: "{{ user_list.stdout_lines }}"
