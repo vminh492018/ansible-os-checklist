@@ -3,9 +3,9 @@
     required_packages=("telnet" "sysstat" "lsof" "dmidecode" "net-tools" "pciutils" "iptables-services" "ntp" "ftp" "nmap" "iotop" "wget" "zip" "unzip" "sysfsutils" "traceroute" "e2fsprogs")
     for package in "${required_packages[@]}"; do
       if rpm -qa | grep -q "^$package-"; then
-        echo "$package ==> OK"
+        echo "$package [PASS]"
       else
-        echo "$package ==> WARNING"
+        echo "$package [FAIL]"
       fi
     done
   register: package_check_output
@@ -13,6 +13,20 @@
   args:
     executable: /bin/bash
 
-- name: Display required packages status
+- name: Set facts after checking
+  block:
+    - name: PASS if all required packages are installed
+      set_fact:
+        check_for_required_packages: "PASS"
+      when: >
+        "'[FAIL]' not in package_check_output.stdout"
+
+    - name: FAIL if any required package is missing
+      set_fact:
+        check_for_required_packages: "FAIL"
+      when: >
+        "'[FAIL]' in package_check_output.stdout"
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ package_check_output.stdout_lines }}"

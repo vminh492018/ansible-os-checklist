@@ -2,15 +2,27 @@
 - name: Check SIRC status
   shell: |
     if ! salt-call --help > /dev/null 2>&1; then
-      echo "SIRC not installed or not running ==> WARNING_SIRC"
+      echo "SIRC not installed or not running [FAIL]"
     else
-      echo "SIRC is running ==> OK"
+      echo "SIRC is running [PASS]"
     fi
   register: sirc_status_output
   ignore_errors: yes
   args:
     executable: /bin/bash
 
-- name: Display SIRC status
+- name: Set facts after checking
+  block:
+    - name: PASS if SIRC is running
+      set_fact:
+        check_SIRC_status: "PASS"
+      when: '"PASS" in sirc_status_output.stdout'
+
+    - name: FAIL if SIRC is not installed or not running
+      set_fact:
+        check_SIRC_status: "FAIL"
+      when: '"FAIL" in sirc_status_output.stdout'
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ sirc_status_output.stdout_lines }}"

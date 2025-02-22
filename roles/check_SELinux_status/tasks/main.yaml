@@ -20,18 +20,35 @@
     if command -v sestatus &> /dev/null; then
         selinux_status=$(sestatus | grep "SELinux status" | awk '{print $3}')
         if [[ $selinux_status == "disabled" ]]; then
-            echo "SELinux is disabled ==> OK"
+            echo "SELinux is disabled [PASS]"
         else
-            echo "SELinux is $selinux_status ==> WARNING"
+            echo "SELinux is $selinux_status [FAIL]"
         fi
     else
-        echo "SELinux utilities are not installed ==> SKIPPED"
+        echo "SELinux utilities are not installed [N/A]"
     fi
   register: selinux_check
   ignore_errors: yes
   args:
     executable: /bin/bash
 
-- name: Show SELinux status check result
+- name: Set facts after checking.......
+  block:
+    - name: PASS if SELinux is disabled
+      set_fact:
+        check_SELinux_status: "PASS"
+      when: '"SELinux is disabled [PASS]" in selinux_check.stdout'
+
+    - name: FAIL if SELinux is enabled or permissive
+      set_fact:
+        check_SELinux_status: "FAIL"
+      when: '"[FAIL]" in selinux_check.stdout'
+
+    - name: N/A if SELinux utilities are not installed
+      set_fact:
+        check_SELinux_status: "N/A"
+      when: '"SELinux utilities are not installed [N/A]" in selinux_check.stdout'
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     var: selinux_check.stdout

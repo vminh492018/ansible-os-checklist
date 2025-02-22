@@ -6,20 +6,34 @@
 
 - name: Check if sd_agent cron job is missing
   debug:
-    msg: "Cron job for sd_agent is missing ==> WARNING"
+    msg: "Cron job for sd_agent is missing [FAIL]"
   when: "'sd_agent_monitor.sh' not in crontab_output.stdout"
 
 - name: Check if scms_agent cron job is missing
   debug:
-    msg: "Cron job for scms_agent is missing ==> WARNING"
+    msg: "Cron job for scms_agent is missing [FAIL]"
   when: "'scms-mon' not in crontab_output.stdout"
 
 - name: Check for unwanted cron jobs
   debug:
-    msg: "Other cron jobs found, only sd_agent and scms_agent allowed ==> WARNING"
+    msg: "Other cron jobs found, only sd_agent and scms_agent allowed [FAIL]"
   when: "'sd_agent_monitor.sh' in crontab_output.stdout and 'scms-mon' in crontab_output.stdout and crontab_output.stdout | regex_search('^(?!sd_agent|scms-agent)')"
 
 - name: Check if crontab configuration is correct
   debug:
-    msg: "Cron configuration is correct, only sd_agent and scms_agent found ==> OK"
+    msg: "Cron configuration is correct, only sd_agent and scms_agent found [PASS]"
   when: "'sd_agent_monitor.sh' in crontab_output.stdout and 'scms-mon' in crontab_output.stdout and crontab_output.stdout | regex_search('^(?!sd_agent|scms-agent)') == false"
+
+- name: Set facts after checking .....
+  block:
+    - name: PASS if crontab configuration is correct
+      set_fact:
+        check_crontab_conf: "PASS"
+      when: >
+        "'sd_agent_monitor.sh' in crontab_output.stdout and 'scms-mon' in crontab_output.stdout and not (crontab_output.stdout | regex_search('^(?!.*sd_agent_monitor.sh)(?!.*scms-mon).*$'))"
+
+    - name: FAIL if crontab configuration is incorrect
+      set_fact:
+        check_crontab_conf: "FAIL"
+      when: >
+        "'sd_agent_monitor.sh' not in crontab_output.stdout or 'scms-mon' not in crontab_output.stdout or (crontab_output.stdout | regex_search('^(?!.*sd_agent_monitor.sh)(?!.*scms-mon).*$'))"

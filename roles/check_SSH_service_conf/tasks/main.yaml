@@ -5,11 +5,23 @@
   failed_when: false
   changed_when: false
 
-- name: Display the result of SSH Protocol version check
+- name: Set facts after checking .....
+  block:
+    - name: PASS if SSH Protocol 2 is configured
+      set_fact:
+        check_SSH_service_conf: "PASS"
+      when: check_ssh_protocol.stdout != ""
+
+    - name: FAIL if SSH Protocol 2 is not configured
+      set_fact:
+        check_SSH_service_conf: "FAIL"
+      when: check_ssh_protocol.stdout == ""
+        
+- name: Detailed results are output after the checking process is finished....
   ansible.builtin.debug:
     msg: >-
       {{
-        ('WARNING: Protocol 2 not configured'
+        ('[FAIL] Protocol 2 not configured'
         if check_ssh_protocol.stdout == '' else
-        'OK: Protocol 2 configured: ' ~ check_ssh_protocol.stdout)
+        '[PASS] Protocol 2 configured: ' ~ check_ssh_protocol.stdout)
       }}

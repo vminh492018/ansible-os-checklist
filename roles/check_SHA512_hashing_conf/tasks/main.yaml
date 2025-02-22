@@ -5,15 +5,29 @@
     yescrypt_hashing=$(grep -i "yescrypt" /etc/pam.d/* | grep -v '^#')
     
     if [[ -n "$sha512_hashing" ]]; then
-      echo "SHA512 password hashing is configured ==> OK"
+      echo "SHA512 password hashing is configured [PASS]"
     elif [[ -n "$yescrypt_hashing" ]]; then
-      echo "Yescrypt password hashing is configured ==> OK"
+      echo "Yescrypt password hashing is configured [PASS]"
     else
-      echo "SHA512 or Yescrypt password hashing is not configured ==> WARNING"
+      echo "SHA512 or Yescrypt password hashing is not configured [FAIL]"
     fi
   register: hashing_check_output
   changed_when: false
 
-- name: Display password hashing check result
+- name: Set facts after checking .....
+  block:
+    - name: PASS if SHA512 or yescrypt password hashing is configured
+      set_fact:
+        check_SHA512_hashing_conf: "PASS"
+      when: >
+        '"SHA512 password hashing is configured [PASS]" in hashing_check_output.stdout or
+        "Yescrypt password hashing is configured [PASS]" in hashing_check_output.stdout'
+
+    - name: FAIL if SHA512 or yescrypt password hashing is not configured
+      set_fact:
+        check_SHA512_hashing_conf: "FAIL"
+      when: '"SHA512 or Yescrypt password hashing is not configured [FAIL]" in hashing_check_output.stdout'
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ hashing_check_output.stdout }}"

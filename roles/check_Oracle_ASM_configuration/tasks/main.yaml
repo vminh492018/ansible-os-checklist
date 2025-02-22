@@ -4,18 +4,36 @@
       oracleasm_scanorder=$(grep -v ^# /etc/sysconfig/oracleasm | grep ORACLEASM_SCANORDER | grep -i dm | wc -l)
       oracleasm_scanexclude=$(grep -v ^# /etc/sysconfig/oracleasm | grep ORACLEASM_SCANEXCLUDE | grep -i sd | wc -l)
       if [[ $oracleasm_scanorder > 0 && $oracleasm_scanexclude > 0 ]]; then
-        echo "ORACLEASM_SCANORDER: $oracleasm_scanorder\nORACLEASM_SCANEXCLUDE: $oracleasm_scanexclude\n==> OK"
+        echo "ORACLEASM_SCANORDER: $oracleasm_scanorder\nORACLEASM_SCANEXCLUDE: $oracleasm_scanexclude\n [PASS]"
       else
-        echo "ORACLEASM_SCANORDER: $oracleasm_scanorder\nORACLEASM_SCANEXCLUDE: $oracleasm_scanexclude\n==> WARNING"
+        echo "ORACLEASM_SCANORDER: $oracleasm_scanorder\nORACLEASM_SCANEXCLUDE: $oracleasm_scanexclude\n [FAIL]"
       fi
     else
-      echo "Server does not have /etc/sysconfig/oracleasm file ==> OK"
+      echo "Server does not have /etc/sysconfig/oracleasm file [PASS]"
     fi
   register: oracle_asm_output
   ignore_errors: yes
   args:
     executable: /bin/bash
 
-- name: Display Oracle ASM configuration status
+- name: Set facts after checking
+  block:
+    - name: PASS if Oracle ASM configuration is correct
+      set_fact:
+        check_Oracle_ASM_configuration: "PASS"
+      when: >
+        oracle_asm_output.stdout is search("Server does not have /etc/sysconfig/oracleasm file [PASS]") or
+        (oracle_asm_output.stdout is search("ORACLEASM_SCANORDER:") and
+         oracle_asm_output.stdout is search("ORACLEASM_SCANEXCLUDE:") and
+         oracle_asm_output.stdout is search("[PASS]"))
+
+    - name: FAIL if Oracle ASM configuration is incorrect
+      set_fact:
+        check_Oracle_ASM_configuration: "FAIL"
+      when: >
+        oracle_asm_output.stdout is search("[FAIL]")
+
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ oracle_asm_output.stdout_lines }}"

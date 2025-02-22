@@ -4,9 +4,9 @@
     files=("/var/log/cmdlog.log" "/var/log/iptables/iptables.log")
     for file in "${files[@]}"; do
       if grep -v ^# /etc/rsyslog.conf | grep -qw "$file"; then
-        echo "$file ==> OK"
+        echo "$file [PASS]"
       else
-        echo "$file ==> WARNING"
+        echo "$file [FAIL]"
       fi
     done
   register: rsyslog_check
@@ -22,17 +22,34 @@
   shell: |
     rsyslog_cmdlog_check=$(grep -v ^# /etc/rsyslog.conf | grep "local6" | grep "/var/log/cmdlog.log" | wc -l)
     if [[ $rsyslog_cmdlog_check == 0 ]]; then
-      echo "rsyslog.conf not configured for cmd logging ==> WARNING"
+      echo "rsyslog.conf not configured for cmd logging [FAIL]"
     elif [[ $rsyslog_cmdlog_check == 1 ]]; then
-      echo "rsyslog.conf configured for cmd logging ==> OK"
+      echo "rsyslog.conf configured for cmd logging [PASS]"
     else
-      echo "rsyslog.conf has duplicate cmd logging configuration ==> WARNING"
+      echo "rsyslog.conf has duplicate cmd logging configuration [FAIL]"
     fi
   register: rsyslog_cmdlog_check
   ignore_errors: yes
   args:
     executable: /bin/bash
 
-- name: Display rsyslog cmdlog configuration status
+- name: Set facts after checking.......
+  block:
+    - name: PASS if all entries are PASS
+      set_fact:
+        check_rsyslogconf: "PASS"
+      when: >
+        '[FAIL]' not in rsyslog_check.stdout and
+        'rsyslog.conf configured for cmd logging [PASS]' in rsyslog_cmdlog_check.stdout
+
+    - name: FAIL if any entry is FAIL
+      set_fact:
+        check_rsyslogconf: "FAIL"
+      when: >
+        '[FAIL]' in rsyslog_check.stdout or
+        'rsyslog.conf not configured for cmd logging [FAIL]' in rsyslog_cmdlog_check.stdout or
+        'rsyslog.conf has duplicate cmd logging configuration [FAIL]' in rsyslog_cmdlog_check.stdout
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ rsyslog_cmdlog_check.stdout_lines }}"

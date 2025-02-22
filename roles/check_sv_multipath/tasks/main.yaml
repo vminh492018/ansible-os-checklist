@@ -4,14 +4,14 @@
     bash -c '
     multipath_list=$(dmsetup status | grep -vw linear | awk "{print \$1}" | sed -e "s/://g" | grep -v p[0-9]$ | grep -v No)
     if [[ -z "$multipath_list" ]]; then
-        echo "Server has no multipath ==> OK"
+        echo "Server has no multipath [PASS]"
     else
         for line in $multipath_list; do
             path_count=$(multipath -ll "$line" | grep -c running)
             if [[ $path_count -lt 4 ]]; then
-                echo "Server has line $line with $path_count path running < 4 ==> WARNING"
+                echo "Server has line $line with $path_count path running < 4 [FAIL]"
             else
-                echo "Server has line $line with $path_count path running >= 4 ==> OK"
+                echo "Server has line $line with $path_count path running >= 4 [PASS]"
             fi
         done
     fi
@@ -19,6 +19,22 @@
   register: multipath_check
   ignore_errors: true
 
-- name: Show multipath check result
+- name: Set facts after checking....
+  block:
+    - name: PASS if no multipath or all multipaths have >= 4 paths running
+      set_fact:
+        check_sv_multipath: "PASS"
+      when: >
+        '"Server has no multipath [PASS]" in multipath_check.stdout or
+        ("Server has line" in multipath_check.stdout and
+        "path running >= 4 [PASS]" in multipath_check.stdout and
+        "path running < 4 [FAIL]" not in multipath_check.stdout)'
+
+    - name: FAIL if any multipath has < 4 paths running
+      set_fact:
+        check_sv_multipath: "FAIL"
+      when: '"path running < 4 [FAIL]" in multipath_check.stdout'
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     var: multipath_check.stdout_lines

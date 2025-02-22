@@ -6,12 +6,24 @@
   failed_when: false  # Prevent task failure if grep returns non-zero exit code
   changed_when: false  # Prevent marking the task as changed
 
-- name: Validate SSH PermitRootLogin configuration
+- name: Set facts after checking .....
+  block:
+    - name: PASS if PermitRootLogin is set to 'no'
+      set_fact:
+        check_permitRootLogin_conf: "PASS"
+      when: permit_root_check.stdout != ""
+
+    - name: FAIL if PermitRootLogin is not set to 'no'
+      set_fact:
+        check_permitRootLogin_conf: "FAIL"
+      when: permit_root_check.stdout == ""
+        
+- name: Detailed results are output after the checking process is finished....
   ansible.builtin.debug:
     msg: >
       {{ 
-        "WARNING: PermitRootLogin is not set to 'no'" 
+        "[FAIL] PermitRootLogin is not set to 'no'" 
         if permit_root_check.stdout == "" 
         else 
-        "OK: PermitRootLogin is correctly set to 'no'"
+        "[PASS] PermitRootLogin is correctly set to 'no'"
       }}

@@ -1,22 +1,33 @@
----
 - name: Check if OpenSSL version is in whitelist
   shell: |
     openssl_whitelist="1.0.1e 1.0.2k 1.0.1u 1.0.2j 1.1.0a 1.1.0g 1.0.2n 1.1.1k"
-    openssl_variable="WARNING"
+    openssl_variable="[FAIL]"
     for version in $openssl_whitelist; do
-      openssl_check=$(openssl version -a | grep "$version")
+      openssl_check=$(openssl version -a | grep "OpenSSL $version")
       if [ ! -z "$openssl_check" ]; then
-        echo "$openssl_check ==> OK"
-        openssl_variable="OK"
+        echo "$openssl_check [PASS]"
+        openssl_variable="[PASS]"
         break
       fi
     done
-    if [ "$openssl_variable" = "WARNING" ]; then
-      echo "OpenSSL version is not in the whitelist ==> WARNING"
+    if [ "$openssl_variable" = "[FAIL]" ]; then
+      echo "OpenSSL version is not in the whitelist [FAIL]"
     fi
   register: openssl_check_result
   changed_when: false
 
-- name: Display OpenSSL version check result
+- name: Set facts after checking .....
+  block:
+    - name: Set PASS if OpenSSL version is whitelisted
+      set_fact:
+        check_openssl: "PASS"
+      when: "'[PASS]' in openssl_check_result.stdout"
+
+    - name: Set FAIL if OpenSSL version is not whitelisted
+      set_fact:
+        check_openssl: "FAIL"
+      when: "'[PASS]' not in openssl_check_result.stdout"
+
+- name: Detailed results are output after the checking process is finished
   debug:
-    msg: "{{ openssl_check_result.stdout }}"
+    msg: "{{ openssl_check_result.stdout_lines }}"

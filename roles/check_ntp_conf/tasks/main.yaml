@@ -4,13 +4,6 @@
   register: ntpd_status
   failed_when: false
   
-- name: Log NTP service status
-  debug:
-    msg: >-
-      Service NTP status: {{
-      'active ==> OK' if ntpd_status.stdout == 'active' else 'inactive ==> WARNING'
-      }}
-  
 - name: Check NTP configuration if service is active
   when: ntpd_status.stdout == 'active'
   block:
@@ -23,7 +16,7 @@
       debug:
         msg: >-
           NTP server configuration: {{
-          'Configured ==> OK' if ntp_server_config.stdout else 'Not configured ==> WARNING'
+          'Configured [PASS]' if ntp_server_config.stdout else 'Not configured [FAIL]'
           }}
   
     - name: Check NTP logrotate configuration
@@ -42,7 +35,7 @@
           debug:
             msg: >-
               NTP logrotate: {{
-              'Configured ==> OK' if ntp_logrotate_entry.stdout else 'Not configured ==> WARNING'
+              'Configured [PASS]' if ntp_logrotate_entry.stdout else 'Not configured [FAIL]'
               }}
   
       when: ntp_logfile.stdout | length > 0
@@ -51,9 +44,36 @@
       debug:
         msg: "NTP logrotate configuration is invalid"
       when: ntp_logfile.stdout | length == 0
-  
-- name: Log NTP service inactive status
-  debug:
-    msg: "NTP service is not running ==> WARNING"
-  when: ntpd_status.stdout != 'active'
+
+- name: Set facts after checking.......
+  block:
+    - name: PASS if NTP service is active and configuration is valid
+      set_fact:
+        check_ntp_conf: "PASS"
+      when: >
+        ntpd_status.stdout == 'active' and
+        ntp_server_config.stdout | length > 0 and
+        (ntp_logfile.stdout | length == 0 or ntp_logrotate_entry.stdout | length > 0)
+
+    - name: FAIL if NTP service is inactive or configuration is invalid
+      set_fact:
+        check_ntp_conf: "FAIL"
+      when: >
+        ntpd_status.stdout != 'active' or
+        ntp_server_config.stdout | length == 0 or
+        (ntp_logfile.stdout | length > 0 and ntp_logrotate_entry.stdout | length == 0)
+
+- name: Detailed results are output after the checking process is finished....
+  block:
+    - name: Log NTP service status
+      debug:
+        msg: >-
+          Service NTP status: {{
+          'active [PASS]' if ntpd_status.stdout == 'active' else 'inactive [FAIL]'
+          }}
+
+    - name: Log NTP service inactive status
+      debug:
+        msg: "NTP service is not running [FAIL]"
+      when: ntpd_status.stdout != 'active'
   

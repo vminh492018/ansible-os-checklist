@@ -16,7 +16,7 @@
 
     - name: Warn if the haveged package is not installed
       ansible.builtin.debug:
-        msg: "The VMware virtual server does not have the haveged service installed ==> WARNING"
+        msg: "The VMware virtual server does not have the haveged service installed [FAIL]"
       when: haveged_check.stdout == ""
 
     - name: Check the status of the haveged service
@@ -29,13 +29,32 @@
       ansible.builtin.debug:
         msg: >
           {% if haveged_status.stdout == 'active' %}
-            The haveged service is running ==> OK
+            The haveged service is running [PASS]
           {% else %}
-            The haveged service is not running ==> WARNING
+            The haveged service is not running [FAIL]
           {% endif %}
       when: haveged_check.stdout != ""
 
+- name: Set facts after checking.......
+  block:
+    - name: PASS if haveged is installed and running on VMware or server is not VMware
+      set_fact:
+        check_haveged_services: "PASS"
+      when: >
+        (sys_vendor_output.stdout | lower is search("vmware") and
+         haveged_check.stdout != "" and
+         haveged_status.stdout == 'active') or
+        not (sys_vendor_output.stdout | lower is search("vmware"))
+
+    - name: FAIL if haveged is not installed or not running on VMware
+      set_fact:
+        check_haveged_services: "FAIL"
+      when: >
+        sys_vendor_output.stdout | lower is search("vmware") and
+        (haveged_check.stdout == "" or
+         haveged_status.stdout != 'active')
+
 - name: Inform if the server is not VMware
   ansible.builtin.debug:
-    msg: "The physical server does not require the haveged service ==> OK"
+    msg: "The physical server does not require the haveged service [PASS]"
   when: not (sys_vendor_output.stdout | lower is search("vmware"))

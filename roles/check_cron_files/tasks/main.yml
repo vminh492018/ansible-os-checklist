@@ -27,3 +27,15 @@
   debug:
     msg: "cron.allow file is missing ==> WARNING"
   when: not cron_allow_stat.stat.exists
+
+- name: Set facts after checking .....
+  block:
+    - name: PASS if 
+      set_fact:
+        check_cron_files: "PASS"
+      when: 
+        
+    - name: FAIL if 
+      set_fact:
+        check_cron_files: "FAIL"
+      when: 

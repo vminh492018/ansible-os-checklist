@@ -4,12 +4,26 @@
   changed_when: false
   failed_when: false
 
-- name: Verify if $PATH contains dangerous paths
-  debug:
-    msg: "WARNING: Dangerous path detected in $PATH: {{ path_check.stdout }}"
-  when: path_check.stdout != ""
+- name: Set facts after checking .....
+  block:
+    - name: PASS if no dangerous paths in $PATH
+      set_fact:
+        check_dangerous_environment_variables: "PASS"
+      when: path_check.stdout == ""
 
-- name: Confirm no dangerous paths in $PATH
-  debug:
-    msg: "OK: No dangerous paths in $PATH"
-  when: path_check.stdout == ""
+    - name: FAIL if dangerous paths detected in $PATH
+      set_fact:
+        check_dangerous_environment_variables: "FAIL"
+      when: path_check.stdout != ""
+        
+- name: Detailed results are output after the checking process is finished....
+  block:
+    - name: Verify if $PATH contains dangerous paths
+      debug:
+        msg: "[FAIL] Dangerous path detected in $PATH: {{ path_check.stdout }}"
+      when: path_check.stdout != ""
+
+    - name: Confirm no dangerous paths in $PATH
+      debug:
+        msg: "[PASS] No dangerous paths in $PATH"
+      when: path_check.stdout == ""

@@ -24,9 +24,9 @@
     # Check general entries
     for entry in "${entries[@]}"; do
         if grep -v ^# /etc/logrotate.conf | grep -qw "$entry"; then
-            block="$block$entry ==> OK\n"
+            block="$block$entry [PASS]\n"
         else
-            block="$block$entry ==> WARNING\n"
+            block="$block$entry [FAIL]\n"
         fi
     done
 
@@ -57,10 +57,10 @@
 
     # Add warning for wtmp and btmp blocks if necessary
     if $wtmp_block_warning; then
-        block="$block/var/log/wtmp {\ncreate 0664 root utmp ==> WARNING\n}"
+        block="$block/var/log/wtmp {\ncreate 0664 root utmp [FAIL]\n}"
     fi
     if $btmp_block_warning; then
-        block="$block/var/log/btmp {\ncreate 0600 root utmp ==> WARNING\n}"
+        block="$block/var/log/btmp {\ncreate 0600 root utmp [FAIL]\n}"
     fi
 
     echo -e "$block"
@@ -68,6 +68,22 @@
   args:
     executable: /bin/bash
 
-- name: Display logrotate configuration check results
-  ansible.builtin.debug:
+- name: Set facts after checking.......
+  block:
+    - name: Check if any line contains [FAIL]
+      set_fact:
+        has_fail: "{{ logrotate_check.stdout_lines | select('search', '[FAIL]') | list | length > 0 }}"
+
+    - name: PASS if all lines contain [PASS]
+      set_fact:
+        check_logrotate_conf: "PASS"
+      when: not has_fail
+
+    - name: FAIL if any line contains [FAIL]
+      set_fact:
+        check_logrotate_conf: "FAIL"
+      when: has_fail 
+
+- name: Detailed results are output after the checking process is finished....
+  debug:
     var: logrotate_check.stdout_lines

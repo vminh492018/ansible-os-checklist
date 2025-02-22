@@ -8,18 +8,36 @@
   debug:
     msg: >-
       Check swap configuration:{% if swap_check_output.stdout.strip() == '' %}
-      No swap partition found ==> WARNING{% else %}
-      Swap partition found ==> OK{% endif %}
+      No swap partition found [FAIL]{% else %}
+      Swap partition found [PASS]{% endif %}
 
 - name: Check swappiness configuration
   shell: cat /proc/sys/vm/swappiness
   register: swappiness_output
   ignore_errors: yes
 
-- name: Display swappiness configuration status
+- name: Set facts after checking
+  block:
+    - name: PASS if swap and swappiness are correctly configured
+      set_fact:
+        check_swap_conf: "PASS"
+      when: >
+        swap_check_output.stdout.strip() != '' and
+        swappiness_output.stdout.strip() != '' and
+        swappiness_output.stdout | int <= 10
+
+    - name: FAIL if swap or swappiness are incorrectly configured
+      set_fact:
+        check_swap_conf: "FAIL"
+      when: >
+        swap_check_output.stdout.strip() == '' or
+        swappiness_output.stdout.strip() == '' or
+        swappiness_output.stdout | int > 10
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: >-
       Check swappiness configuration:{% if swappiness_output.stdout.strip() == '' or swappiness_output.stdout | int > 10 %}
-      Swappiness is incorrectly configured: Swappiness={{ swappiness_output.stdout.strip() }} ==> WARNING{% else %}
-      Swappiness is correctly configured: Swappiness={{ swappiness_output.stdout.strip() }} ==> OK{% endif %}
+      Swappiness is incorrectly configured: Swappiness={{ swappiness_output.stdout.strip() }} [FAIL]{% else %}
+      Swappiness is correctly configured: Swappiness={{ swappiness_output.stdout.strip() }} [PASS]{% endif %}
 

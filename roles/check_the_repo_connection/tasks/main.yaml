@@ -2,15 +2,29 @@
   shell: |
     repo_check=$(curl --connect-timeout 3 -s -o /dev/null -I -w "%{http_code}" 10.60.129.132)
     if [[ $repo_check != 200 ]]; then
-      echo "Repo connect NOK ==> WARNING"
+      echo "Repo connect NOK [FAIL]"
     else
-      echo "Repo connect ==> OK"
+      echo "Repo connect [PASS]"
     fi
   register: repo_check_output
   ignore_errors: yes
   args:
     executable: /bin/bash
 
-- name: Display repo connection status
+- name: Set facts after checking
+  block:
+    - name: PASS if repo connection is successful
+      set_fact:
+        check_the_repo_connection: "PASS"
+      when: >
+        "'Repo connect [PASS]' in repo_check_output.stdout"
+
+    - name: FAIL if repo connection is unsuccessful
+      set_fact:
+        check_the_repo_connection: "FAIL"
+      when: >
+        "'Repo connect NOK [FAIL]' in repo_check_output.stdout"
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ repo_check_output.stdout_lines }}"

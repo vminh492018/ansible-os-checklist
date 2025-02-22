@@ -5,9 +5,9 @@
     entries=("/var/log/iptables/iptables.log" "{" "daily" "rotate 30" "copytruncate" "compress" "notifempty" "missingok" "}")
     for entry in "${entries[@]}"; do
         if grep -v ^# /etc/logrotate.d/iptables | grep -qw "$entry"; then
-            echo "$entry ==> OK"
+            echo "$entry [PASS]"
         else
-            echo "$entry ==> WARNING"
+            echo "$entry [FAIL]"
         fi
     done
   register: logrotate_check
@@ -15,6 +15,18 @@
   args:
     executable: /bin/bash
 
-- name: Display logrotate configuration status
+- name: Set facts after checking.......
+  block:
+    - name: PASS if all entries are PASS
+      set_fact:
+        check_logrotate_iptables: "PASS"
+      when: "'[FAIL]' not in logrotate_check.stdout"
+
+    - name: FAIL if any entry is FAIL
+      set_fact:
+        check_logrotate_iptables: "FAIL"
+      when: "'[FAIL]' in logrotate_check.stdout"
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ logrotate_check.stdout_lines }}"

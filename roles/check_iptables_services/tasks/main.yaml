@@ -5,13 +5,28 @@
   failed_when: false
   ignore_errors: false
 
-- name: Display iptables status
-  ansible.builtin.debug:
-    msg: "iptables is active ==> OK"
-  when: iptables_status.stdout == "active"
+- name: Set facts after checking.......
+  block:
+    - name: PASS if iptables is active
+      set_fact:
+        check_iptables_services: "PASS"
+      when: iptables_status.stdout == "active"
 
-- name: Warn if iptables is inactive
-  ansible.builtin.debug:
-    msg: "iptables is inactive ==> WARNING"
-  when: iptables_status.stdout == "inactive"
+    - name: FAIL if iptables is inactive
+      set_fact:
+        check_iptables_services: "FAIL"
+      when: iptables_status.stdout == "inactive"
+
+- name: Detailed results are output after the checking process is finished....
+  block:
+    - name: Iptables status PASS
+      ansible.builtin.debug:
+        msg: "iptables is active [PASS]"
+      when: iptables_status.stdout == "active"
+
+
+    - name: Iptables status FAIL
+      ansible.builtin.debug:
+        msg: "iptables is inactive [FAIL]"
+      when: iptables_status.stdout == "inactive"
 

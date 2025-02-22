@@ -12,12 +12,24 @@
         root_processes.stdout_lines | select("match", ".*(java|tomcat|jre|jdk|kubelet).*") | list
       }}
 
-- name: Display the result of Java-related process check
+- name: Set facts after checking .....
+  block:
+    - name: PASS if no Java-related processes are running as root
+      set_fact:
+        check_java_processes_running_as_root: "PASS"
+      when: java_processes | length == 0
+
+    - name: FAIL if Java-related processes are running as root
+      set_fact:
+        check_java_processes_running_as_root: "FAIL"
+      when: java_processes | length > 0
+
+- name: Detailed results are output after the checking process is finished....
   ansible.builtin.debug:
     msg: >-
       {% if java_processes | length == 0 %}
-      No Java-related processes (java, tomcat, jre, jdk, kubelet) are running as root ==> OK
+      No Java-related processes (java, tomcat, jre, jdk, kubelet) are running as root [PASS]
       {% else %}
-      WARNING: Java-related processes are running as root!
+      Java-related processes are running as root! [FAIL]
       {{ java_processes | join('\n') }}
       {% endif %}

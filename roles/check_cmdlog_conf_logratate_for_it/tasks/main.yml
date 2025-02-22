@@ -12,7 +12,7 @@
     fi
   register: cmdlog_check
   when: bashrc_file.stat.exists
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Display cmdlog configuration status
   debug:
@@ -28,16 +28,28 @@
     entries=("/var/log/cmdlog.log" "{" "compress" "weekly" "rotate 12" "sharedscripts" "postrotate" "/bin/kill -HUP \`cat /var/run/syslogd.pid 2> /dev/null\` 2> /dev/null || true" "endscript" "}")
     for entry in "${entries[@]}"; do
         if grep -v ^# /etc/logrotate.d/cmdlog | grep -qw "$entry"; then
-            echo "$entry ==> OK"
+            echo "$entry [PASS]"
         else
-            echo "$entry ==> WARNING"
+            echo "$entry [FAIL]"
         fi
     done
   register: logrotate_check
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 
-- name: Display logrotate configuration status for cmdlog
+- name: Set facts after checking.......
+  block:
+    - name: PASS if all entries are PASS
+      set_fact:
+        check_cmdlog_conf_logratate_for_it: "PASS"
+      when: "'[FAIL]' not in logrotate_check.stdout"
+
+    - name: FAIL if any entry is FAIL
+      set_fact:
+        check_cmdlog_conf_logratate_for_it: "FAIL"
+      when: "'[FAIL]' in logrotate_check.stdout"
+      
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ logrotate_check.stdout_lines }}"

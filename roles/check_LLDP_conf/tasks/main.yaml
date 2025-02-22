@@ -1,19 +1,19 @@
 - name: Check LLDP configuration of the server
   shell: |
     if [ -f /sys/class/dmi/id/sys_vendor ] && grep -qi "VMware" /sys/class/dmi/id/sys_vendor; then
-      echo "VMware server does not need LLDP installation ==> OK"
+      echo "VMware server does not need LLDP installation [PASS]"
     else
       lldp_package_check=$(rpm -qa | grep ^lldpd-)
       if [[ -n $lldp_package_check ]]; then
-        echo "Physical server has LLDP package installed ==> OK"
+        echo "Physical server has LLDP package installed [PASS]"
         lldp_neighbors_check=$(lldpcli show neighbors | grep "LLDP neighbors:")
         if [[ -n $lldp_neighbors_check ]]; then
-          echo "LLDP show neighbors ==> OK"
+          echo "LLDP show neighbors [PASS]"
         else
-          echo "LLDP show neighbors ==> WARNING"
+          echo "LLDP show neighbors [FAIL]"
         fi
       else
-        echo "Physical server does not have LLDP package installed ==> WARNING"
+        echo "Physical server does not have LLDP package installed [FAIL]"
       fi
     fi
   register: lldp_check_output
@@ -21,6 +21,23 @@
   args:
     executable: /bin/bash
 
-- name: Display LLDP configuration status
+- name: Set facts after checking
+  block:
+    - name: PASS if LLDP configuration is correct
+      set_fact:
+        check_LLDP_conf: "PASS"
+      when: >
+        "'VMware server does not need LLDP installation [PASS]' in lldp_check_output.stdout" or
+        ("'Physical server has LLDP package installed [PASS]' in lldp_check_output.stdout" and
+         "'LLDP show neighbors [PASS]' in lldp_check_output.stdout")
+
+    - name: FAIL if LLDP configuration is incorrect
+      set_fact:
+        check_LLDP_conf: "FAIL"
+      when: >
+        "'Physical server does not have LLDP package installed [FAIL]' in lldp_check_output.stdout" or
+        "'LLDP show neighbors [FAIL]' in lldp_check_output.stdout"
+
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ lldp_check_output.stdout_lines }}"

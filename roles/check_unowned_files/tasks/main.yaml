@@ -8,14 +8,28 @@
   set_fact:
     unowned_files_list: "{{ unowned_files.stdout_lines }}"
 
-- name: Display unowned files if found
-  debug:
-    msg:
-      -  Unowned files were found, check path ==> WARNING
-      - "{{ unowned_files_list }}"
-  when: unowned_files_list | length > 0
+- name: Set check result status
+  block:
+    - name: PASS if no unowned files
+      set_fact:
+        check_unowned_files: "PASS"
+      when: unowned_files_list | length == 0
 
-- name: Report if no unowned files are found
-  debug:
-    msg: "No unowned files found ==> OK"
-  when: unowned_files_list | length == 0
+    - name: FAIL if unowned files exist
+      set_fact:
+        check_unowned_files: "FAIL"
+      when: unowned_files_list | length > 0
+
+- name: Detailed results are output after the checking process is finished....
+  block:
+    - name: Display unowned files if found
+      debug:
+        msg:
+          - "Unowned files were found, check path [FAIL]"
+          - "Files: {{ unowned_files_list }}"
+      when: unowned_files_list | length > 0
+
+    - name: Report if no unowned files are found
+      debug:
+        msg: "No unowned files found [PASS]"
+      when: unowned_files_list | length == 0

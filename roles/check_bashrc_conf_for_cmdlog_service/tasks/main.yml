@@ -2,17 +2,31 @@
   shell: |
     bashrc_check=$(grep -v ^# /etc/bashrc | grep "export PROMPT_COMMAND" | grep "local6.debug" | wc -l)
     if [[ $bashrc_check == 0 ]]; then
-      echo "/etc/bashrc not configured for cmd logging ==> WARNING"
+      echo "/etc/bashrc not configured for cmd logging [FAIL]"
     elif [[ $bashrc_check == 1 ]]; then
-      echo "/etc/bashrc configured for cmd logging ==> OK"
+      echo "/etc/bashrc configured for cmd logging [PASS]"
     else
-      echo "/etc/bashrc has duplicate cmd logging configuration ==> WARNING"
+      echo "/etc/bashrc has duplicate cmd logging configuration [FAIL]"
     fi
   register: bashrc_check_output
   ignore_errors: yes
   args:
     executable: /bin/bash
 
-- name: Display bashrc configuration status for cmdlog
+- name: Set facts after checking.......
+  block:
+    - name: PASS if configuration is PASS
+      set_fact:
+        check_bashrc_conf_for_cmdlog_service: "PASS"
+      when: "'/etc/bashrc configured for cmd logging [PASS]' in bashrc_check_output.stdout"
+
+    - name: FAIL if configuration is FAIL
+      set_fact:
+        check_bashrc_conf_for_cmdlog_service: "FAIL"
+      when: >
+        "'/etc/bashrc not configured for cmd logging [FAIL]' in bashrc_check_output.stdout" or
+        "'/etc/bashrc has duplicate cmd logging configuration [FAIL]' in bashrc_check_output.stdout"
+        
+- name: Detailed results are output after the checking process is finished....
   debug:
     msg: "{{ bashrc_check_output.stdout_lines }}"

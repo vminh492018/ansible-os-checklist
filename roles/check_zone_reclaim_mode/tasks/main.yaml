@@ -3,12 +3,26 @@
   command: cat /proc/sys/vm/zone_reclaim_mode
   register: zone_reclaim_mode_result
 
-- name: Display zone_reclaim_mode status
-  debug:
-    msg: "zone_reclaim_mode={{ zone_reclaim_mode_result.stdout }} ==> OK"
-  when: zone_reclaim_mode_result.stdout == "0"
+- name: Set facts after checking
+  block:
+    - name: PASS if zone_reclaim_mode is 0
+      set_fact:
+        check_zone_reclaim_mode: "PASS"
+      when: zone_reclaim_mode_result.stdout == "0"
 
-- name: Warn if zone_reclaim_mode is not 0
-  debug:
-    msg: "zone_reclaim_mode={{ zone_reclaim_mode_result.stdout }} ==> WARNING"
-  when: zone_reclaim_mode_result.stdout != "0"
+    - name: FAIL if zone_reclaim_mode is not 0
+      set_fact:
+        check_zone_reclaim_mode: "FAIL"
+      when: zone_reclaim_mode_result.stdout != "0"
+
+- name: Detailed results are output after the checking process is finished....
+  block:
+    - name: PASS
+      debug:
+        msg: "zone_reclaim_mode={{ zone_reclaim_mode_result.stdout }} [PASS]"
+      when: zone_reclaim_mode_result.stdout == "0"
+
+    - name: FAIL
+      debug:
+        msg: "zone_reclaim_mode={{ zone_reclaim_mode_result.stdout }} [FAIL]"
+      when: zone_reclaim_mode_result.stdout != "0"
