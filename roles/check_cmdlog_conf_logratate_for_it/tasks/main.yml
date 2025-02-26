@@ -6,9 +6,9 @@
 - name: Check cmdlog configuration in /etc/bashrc
   shell: |
     if grep -v ^# /etc/bashrc | grep "local6.debug" | grep ctty; then
-      echo "CMDLog configured to new standard ==> OK"
+      echo "CMDLog configured to new standard [PASS]"
     else
-      echo "CMDLog not configured to new standard ==> WARNING"
+      echo "CMDLog not configured to new standard [FAIL]"
     fi
   register: cmdlog_check
   when: bashrc_file.stat.exists
@@ -20,7 +20,7 @@
       {% if bashrc_file.stat.exists %}
         {{ cmdlog_check.stdout }}
       {% else %}
-        File /etc/bashrc does not exist ==> WARNING
+        File /etc/bashrc does not exist [FAIL]
       {% endif %}
 
 - name: Check logrotate configuration for cmdlog
