@@ -4,12 +4,12 @@
     if [[ -f /proc/sys/net/nf_conntrack_max ]]; then
         nf_conntrack_max=$(cat /proc/sys/net/nf_conntrack_max)
         if [[ $nf_conntrack_max -lt 524288 ]]; then
-            echo "/proc/sys/net/nf_conntrack_max = $nf_conntrack_max < 524288 ==> WARNING"
+            echo "/proc/sys/net/nf_conntrack_max = $nf_conntrack_max < 524288 [FAIL]"
         else
-            echo "/proc/sys/net/nf_conntrack_max = $nf_conntrack_max >= 524288 ==> OK"
+            echo "/proc/sys/net/nf_conntrack_max = $nf_conntrack_max >= 524288 [PASS]"
         fi
     else
-        echo "/proc/sys/net/nf_conntrack_max not found ==> WARNING"
+        echo "/proc/sys/net/nf_conntrack_max not found [FAIL]"
     fi
   register: nf_conntrack_max_check
 
@@ -22,12 +22,12 @@
     if [[ -f /sys/module/nf_conntrack_ipv4/parameters/hashsize ]]; then
         nf_conntrack_hashsize=$(cat /sys/module/nf_conntrack_ipv4/parameters/hashsize)
         if [[ $nf_conntrack_hashsize -lt 131072 ]]; then
-            echo "/sys/module/nf_conntrack_ipv4/parameters/hashsize = $nf_conntrack_hashsize < 131072 ==> WARNING"
+            echo "/sys/module/nf_conntrack_ipv4/parameters/hashsize = $nf_conntrack_hashsize < 131072 [FAIL]"
         else
-            echo "/sys/module/nf_conntrack_ipv4/parameters/hashsize = $nf_conntrack_hashsize >= 131072 ==> OK"
+            echo "/sys/module/nf_conntrack_ipv4/parameters/hashsize = $nf_conntrack_hashsize >= 131072 [PASS]"
         fi
     else
-        echo "/sys/module/nf_conntrack_ipv4/parameters/hashsize not found ==> WARNING"
+        echo "/sys/module/nf_conntrack_ipv4/parameters/hashsize not found [FAIL]"
     fi
   register: nf_conntrack_hashsize_check
 

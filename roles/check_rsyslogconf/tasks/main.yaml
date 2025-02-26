@@ -10,7 +10,7 @@
       fi
     done
   register: rsyslog_check
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 
@@ -29,7 +29,7 @@
       echo "rsyslog.conf has duplicate cmd logging configuration [FAIL]"
     fi
   register: rsyslog_cmdlog_check
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 

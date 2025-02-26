@@ -30,12 +30,15 @@
 
 - name: Set facts after checking .....
   block:
-    - name: PASS if 
+    - name: PASS if all conditions are met
       set_fact:
         check_cron_files: "PASS"
-      when: 
-        
-    - name: FAIL if 
+      when:
+        - not cron_deny_stat.stat.exists 
+        - cron_allow_stat.stat.exists     
+
+    - name: FAIL if any condition fails
       set_fact:
         check_cron_files: "FAIL"
-      when: 
+      when:
+        - cron_deny_stat.stat.exists or not cron_allow_stat.stat.exists  

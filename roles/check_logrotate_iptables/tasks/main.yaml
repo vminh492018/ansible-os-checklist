@@ -11,7 +11,7 @@
         fi
     done
   register: logrotate_check
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 

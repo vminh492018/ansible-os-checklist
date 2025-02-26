@@ -9,7 +9,7 @@
       echo "/etc/bashrc has duplicate cmd logging configuration [FAIL]"
     fi
   register: bashrc_check_output
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 

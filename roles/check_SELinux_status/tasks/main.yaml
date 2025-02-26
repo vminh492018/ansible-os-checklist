@@ -10,7 +10,7 @@
         fi
     fi
   register: selinux_install_check
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 
@@ -28,7 +28,7 @@
         echo "SELinux utilities are not installed [N/A]"
     fi
   register: selinux_check
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 

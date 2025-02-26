@@ -1,8 +1,8 @@
 - name: Check crontab configuration
   command: crontab -l
   register: crontab_output
-  failed_when: false  # Avoid playbook failure if crontab doesn't exist
-  ignore_errors: yes  # Ignore errors
+  failed_when: false  
+  ignore_errors: true  
 
 - name: Check if sd_agent cron job is missing
   debug:

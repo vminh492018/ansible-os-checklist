@@ -5,13 +5,13 @@
   register: tmout_config
   failed_when: false
   changed_when: false
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Check if /etc/profile has TMOUT=300 configuration
   shell: |
     grep -v ^# /etc/profile | grep "TMOUT=300" | wc -l
   register: tmout_count
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Set facts after checking .....
   block:
@@ -37,7 +37,7 @@
         msg: "TMOUT is configured correctly [PASS]"
       when: tmout_config.stdout != ""
 
-    - name: Warning if TMOUT is not configured correctly
+    - name: FAIL if TMOUT is not configured correctly
       debug:
         msg: "TMOUT is not configured correctly [FAIL]"
       when: tmout_config.stdout == ""
@@ -47,12 +47,12 @@
         msg: "/etc/profile has TMOUT=300 configured [PASS]"
       when: tmout_count.stdout == "1"
 
-    - name: Warning if /etc/profile is missing TMOUT=300 configuration
+    - name: FAIL if /etc/profile is missing TMOUT=300 configuration
       debug:
         msg: "/etc/profile is missing TMOUT=300 configuration [FAIL]"
       when: tmout_count.stdout == "0"
 
-    - name: Warning if /etc/profile has duplicate TMOUT=300 configurations
+    - name: FAIL if /etc/profile has duplicate TMOUT=300 configurations
       debug:
         msg: "/etc/profile has duplicate TMOUT=300 configurations [FAIL]"
       when: tmout_count.stdout > "1"

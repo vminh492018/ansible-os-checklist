@@ -12,7 +12,7 @@
       echo "Server does not have /etc/sysconfig/oracleasm file [PASS]"
     fi
   register: oracle_asm_output
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 

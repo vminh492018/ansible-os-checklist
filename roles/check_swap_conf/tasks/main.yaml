@@ -2,7 +2,7 @@
 - name: Check swap configuration
   shell: tail -n+2 /proc/swaps
   register: swap_check_output
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Display swap configuration status
   debug:
@@ -14,7 +14,7 @@
 - name: Check swappiness configuration
   shell: cat /proc/sys/vm/swappiness
   register: swappiness_output
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Set facts after checking
   block:

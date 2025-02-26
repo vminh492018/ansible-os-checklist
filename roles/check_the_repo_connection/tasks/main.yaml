@@ -7,7 +7,7 @@
       echo "Repo connect [PASS]"
     fi
   register: repo_check_output
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 

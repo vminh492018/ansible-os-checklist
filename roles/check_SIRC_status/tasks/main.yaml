@@ -7,7 +7,7 @@
       echo "SIRC is running [PASS]"
     fi
   register: sirc_status_output
-  ignore_errors: yes
+  ignore_errors: true
   args:
     executable: /bin/bash
 
