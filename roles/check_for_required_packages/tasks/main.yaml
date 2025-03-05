@@ -18,14 +18,12 @@
     - name: PASS if all required packages are installed
       set_fact:
         check_for_required_packages: "PASS"
-      when: >
-        "'[FAIL]' not in package_check_output.stdout"
+      when: "'FAIL' not in package_check_output.stdout"
 
     - name: FAIL if any required package is missing
       set_fact:
         check_for_required_packages: "FAIL"
-      when: >
-        "'[FAIL]' in package_check_output.stdout"
+      when: "'FAIL' in package_check_output.stdout"
 
 - name: Detailed results are output after the checking process is finished....
   debug:

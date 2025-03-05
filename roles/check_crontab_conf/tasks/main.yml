@@ -24,16 +24,20 @@
     msg: "Cron configuration is correct, only sd_agent and scms_agent found [PASS]"
   when: "'sd_agent_monitor.sh' in crontab_output.stdout and 'scms-mon' in crontab_output.stdout and crontab_output.stdout | regex_search('^(?!sd_agent|scms-agent)') == false"
 
-- name: Set facts after checking .....
+- name: Set facts after checking
   block:
-    - name: PASS if crontab configuration is correct
-      set_fact:
-        check_crontab_conf: "PASS"
-      when: >
-        "'sd_agent_monitor.sh' in crontab_output.stdout and 'scms-mon' in crontab_output.stdout and not (crontab_output.stdout | regex_search('^(?!.*sd_agent_monitor.sh)(?!.*scms-mon).*$'))"
-
-    - name: FAIL if crontab configuration is incorrect
+    - name: FAIL if any check fails
       set_fact:
         check_crontab_conf: "FAIL"
       when: >
-        "'sd_agent_monitor.sh' not in crontab_output.stdout or 'scms-mon' not in crontab_output.stdout or (crontab_output.stdout | regex_search('^(?!.*sd_agent_monitor.sh)(?!.*scms-mon).*$'))"
+        ('sd_agent_monitor.sh' not in crontab_output.stdout) or
+        ('scms-mon' not in crontab_output.stdout) or
+        (crontab_output.stdout | regex_search('^(?!.*sd_agent_monitor\.sh|.*scms-mon).*$'))
+
+    - name: PASS if all checks pass
+      set_fact:
+        check_crontab_conf: "PASS"
+      when: >
+        'sd_agent_monitor.sh' in crontab_output.stdout and
+        'scms-mon' in crontab_output.stdout and
+        not (crontab_output.stdout | regex_search('^(?!.*sd_agent_monitor\.sh|.*scms-mon).*$'))

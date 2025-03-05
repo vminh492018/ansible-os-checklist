@@ -27,16 +27,16 @@
       set_fact:
         check_LLDP_conf: "PASS"
       when: >
-        "'VMware server does not need LLDP installation [PASS]' in lldp_check_output.stdout" or
-        ("'Physical server has LLDP package installed [PASS]' in lldp_check_output.stdout" and
-         "'LLDP show neighbors [PASS]' in lldp_check_output.stdout")
+        'VMware server does not need LLDP installation [PASS]' in lldp_check_output.stdout or
+        ('Physical server has LLDP package installed [PASS]' in lldp_check_output.stdout and
+         'LLDP show neighbors [PASS]' in lldp_check_output.stdout)
 
     - name: FAIL if LLDP configuration is incorrect
       set_fact:
         check_LLDP_conf: "FAIL"
       when: >
-        "'Physical server does not have LLDP package installed [FAIL]' in lldp_check_output.stdout" or
-        "'LLDP show neighbors [FAIL]' in lldp_check_output.stdout"
+        'Physical server does not have LLDP package installed [FAIL]' in lldp_check_output.stdout or
+        'LLDP show neighbors [FAIL]' in lldp_check_output.stdout
 
 - name: Detailed results are output after the checking process is finished....
   debug:
